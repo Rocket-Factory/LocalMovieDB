@@ -3,7 +3,7 @@ import os
 import time
 from database import DBSession, Movie, Tag, MovieTag
 from config import MOVIE_DIR_RE, ROOT_DIR
-from douban import get_db_id, get_db_info
+from douban import get_db_id2, get_db_info
 
 realpath = os.path.split(os.path.realpath(__file__))[0]
 
@@ -73,7 +73,7 @@ def run():
         print(movie[2])
         if timeout < 60:
             time.sleep(timeout + 2 * index)
-        db_id = get_db_id(movie[0], movie[1])
+        db_id = get_db_id2(movie[0], movie[1])
         if not db_id:
             print('获取豆瓣Subject ID错误')
             FAILED_MOVIES.append(movie)
