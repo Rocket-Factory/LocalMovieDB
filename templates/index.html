@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <meta name="referrer" content="no-referrer"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes"/>
+    <link href="./plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="./css/bootstrap.min.css" type="text/css" rel="stylesheet">
+    <link href="./css/index.css" type="text/css" rel="stylesheet">
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+<div class="pageContent">
+    <div style="display: none" id="configUri" preUri="{{ pre_uri }}" after_uri="{{ after_uri }}"></div>
+    <div class="sideMenu">
+        <div class="fixed-header">
+            <div class="logoIcon"></div>
+            <i class="pageTitle"> {{ title }}</i>
+        </div>
+
+        <div class="filterContent">
+            <div class="filterItem">
+                <label class="filterLabel">排序：</label>
+                <ul class="orderMenu filterOptions">
+                    <li value="title">按名称</li>
+                    <li value="type">按类型</li>
+                    <li value="year">按年代</li>
+                    <li value="update_date">按更新时间</li>
+                    <li value="douban_rating">按评分</li>
+                </ul>
+            </div>
+        </div>
+        <div style="margin-top: 25px;text-decoration: none" class="filterContent"><a href="{{ browser_link }}">
+            <button type="button" class="btn btn-primary btn-block">浏览文件</button>
+        </a></div>
+    </div>
+    <div class="mainContent">
+        <div class="fixed-header">
+            <div id="fixedLogo" class="logoIcon"></div>
+            <div class="roundRectSearch">
+                <i class="fa fa-search searchIcon"></i>
+                <input id="queryInput" class="searchInput" placeholder="输入电影名称">
+                <button id="searchBtn" class="btn btn-confirm searchBtn" type="button">Search</button>
+            </div>
+        </div>
+        <div id="moviesListContent"></div>
+    </div>
+</div>
+<script type="text/javascript" src="./plugins/jquery-3.2.1.js"></script>
+<script type="text/javascript" src="./plugins/bootstrap.min.js"></script>
+<script type="text/javascript" src="./js/movies.js"></script>
+</body>
+</html>
