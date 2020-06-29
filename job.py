@@ -54,11 +54,12 @@ def update_or_insert(info):
 
         for tag in info['tags']:
             if session.query(Tag).filter(Tag.text == tag).count() > 0:
-                continue
-            new_tag = Tag(tag)
-            session.add(new_tag)
-            session.flush()
-            new_movie_tag = MovieTag(new_movie.id, new_tag.id)
+                tar_tag = session.query(Tag).filter(Tag.text == tag).first()
+            else:
+                tar_tag = Tag(tag)
+                session.add(tar_tag)
+                session.flush()
+            new_movie_tag = MovieTag(new_movie.id, tar_tag.id)
             session.add(new_movie_tag)
 
     session.commit()
