@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, jsonify
-from database import Movie, Tag, DBSession
+from sqlalchemy.orm import aliased
+
+from database import Movie, Tag, MovieTag, DBSession
 from sqlalchemy import text
-from config import PAGE_TITLE, PRE_URI, BROWSER_LINK,AFTER_URI
+from config import PAGE_TITLE, PRE_URI, BROWSER_LINK, AFTER_URI
 
 app = Flask(__name__, static_url_path='',
             static_folder='static')
@@ -9,14 +11,15 @@ app = Flask(__name__, static_url_path='',
 
 @app.route('/')
 def index():
-    return render_template('index.html', title=PAGE_TITLE, pre_uri=PRE_URI, browser_link=BROWSER_LINK, after_uri=AFTER_URI)
+    return render_template('index.html', title=PAGE_TITLE, pre_uri=PRE_URI, browser_link=BROWSER_LINK,
+                           after_uri=AFTER_URI)
 
 
 @app.route('/api/movies')
 def get_movies():
     page = 1
     limit = 10
-    order_by = 'update_date'
+    order_by = '-update_date'
     args = request.args.to_dict()
     if 'page' in args:
         page = int(args['page'])
@@ -27,32 +30,42 @@ def get_movies():
     if 'order_by' in args:
         order_by = args['order_by']
         args.pop('order_by')
+    tags = []
+    if 'tags' in args:
+        tags = args['tags'].split(',')
+        args.pop('tags')
     session = DBSession()
+    query = session.query(Movie)
     if 'q' in args:
-        if order_by == 'update_date':
-            movies = session.query(Movie).filter(Movie.title.like('%{}%'.format(args['q']))).order_by(
-                Movie.update_date).slice(
-                (page - 1) * limit, page * limit).all()
-        elif order_by == '-update_date':
-            movies = session.query(Movie).filter(Movie.title.like('%{}%'.format(args['q']))).order_by(
-                Movie.update_date.desc()).slice((page - 1) * limit, page * limit).all()
-        else:
-            movies = session.query(Movie).filter(Movie.title.like('%{}%'.format(args['q']))).order_by(
-                text(order_by)).slice(
-                (page - 1) * limit, page * limit).all()
-    else:
-        if order_by == 'update_date':
-            movies = session.query(Movie).filter_by(**args).order_by(Movie.update_date).slice(
-                (page - 1) * limit, page * limit).all()
-        elif order_by == '-update_date':
-            movies = session.query(Movie).filter_by(**args).order_by(Movie.update_date.desc()).slice(
-                (page - 1) * limit,
-                page * limit).all()
-        else:
-            movies = session.query(Movie).filter_by(**args).order_by(text(order_by)).slice((page - 1) * limit,
-                                                                                           page * limit).all()
+        query = query.filter(Movie.title.like('%{}%'.format(args['q'])))
+    if tags:
+        alaised_movie_tag = dict()
+        alaised_tag = dict()
+        for i, tag in enumerate(tags):
+            if i > 5:
+                break
+            alaised_movie_tag[i] = aliased(MovieTag)
+            alaised_tag[i] = aliased(Tag)
+            query = query.join(alaised_movie_tag[i], Movie.id == alaised_movie_tag[i].movie_id) \
+                .join(alaised_tag[i], alaised_movie_tag[i].tag_id == alaised_tag[i].id) \
+                .filter(alaised_tag[i].text == tag)
 
-    result = [movie.to_json() for movie in movies]
+    if order_by == 'update_date':
+        query = query.order_by(Movie.update_date.asc())
+    elif order_by == '-update_date':
+        query = query.order_by(Movie.update_date.desc())
+    else:
+        query = query.order_by(text(order_by))
+
+    movies = query.slice((page - 1) * limit, page * limit).all()
+    result = []
+    for movie in movies:
+        movie_json = movie.to_json()
+        movie_tags = session.query(Tag).join(MovieTag, MovieTag.tag_id == Tag.id).filter(
+            MovieTag.movie_id == movie_json['id']).all()
+
+        movie_json['tags'] = [tag_.text for tag_ in movie_tags]
+        result.append(movie_json)
 
     return jsonify(result)
 
