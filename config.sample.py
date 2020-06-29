@@ -18,3 +18,9 @@ PAGE_TITLE = 'Movie DB'
 
 # 浏览链接(页面侧栏浏览按钮对应链接)
 BROWSER_LINK = ''
+
+# 豆瓣账户（抓取ID需要）
+DB_NAME = ''
+
+DB_PASSWORD = ''
+

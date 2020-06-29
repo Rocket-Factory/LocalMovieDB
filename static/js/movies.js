@@ -10,6 +10,8 @@ let main = {
 
     queryYear: '',
     curPage: 1,
+    queryTags: [],
+
 
     init: function () {
         main.initBtnEvent();
@@ -17,10 +19,10 @@ let main = {
 
         main.getData();
     },
-    getData: function () {
+    getData: function (loading) {
         $('#moviesListContent').html('');
         main.curPage = 1;
-        main.ajaxData(true);
+        main.ajaxData(loading !== false);
     },
     ajaxData: function (enableLoading = false) {
         if (enableLoading === true) {
@@ -30,7 +32,8 @@ let main = {
             page: main.curPage,
             limit: 20,
             q: $('#queryInput').val() || '',
-            year: main.queryYear || ''
+            year: main.queryYear || '',
+            tags: main.queryTags.join()
         };
         if (main.orderBy) {
             params.order_by = (main.orderType === "asc" ? "" : "-") + main.orderBy
@@ -123,12 +126,32 @@ let main = {
             }
         };
     },
+    initTagEvent: function () {
+        $('#moviesListContent .movieTag').off('click').on('click', function () {
+            let curTag = $(this).text();
+            if (main.queryTags.indexOf(curTag) === -1) {
+                let $li = '<li class="tabOptions" data-tag="' + curTag + '">' + $(this).text() + '<i class="fa fa-times" onclick="main.removeTag(\'' + curTag + '\')" style="margin-left: 3px"></i></li>';
+                $('#selectedTags').append($li);
+                $('#menuSelectedTags').append($li);
+                main.queryTags.push(curTag);
+                main.getData(false);
+            }
+        });
+    },
+    removeTag: function (tag) {
+        main.queryTags.splice(main.queryTags.indexOf(tag), 1);
+        $('.tabOptions[data-tag="' + tag + '"]').remove();
+        main.getData(false);
+    },
     refreshMoviesContent: function (data) {
         let pre_uri = $("#configUri").attr("preUri");
         let after_uri = $("#configUri").attr("after_uri");
         let moviesHtml = '';
         if (data.length > 0) {
             data.forEach(function (item) {
+                let tags = (item.tags || []).map(function (tag) {
+                    return '<span class="movieTag">' + tag + '</span>'
+                });
                 moviesHtml +=
                     '<div class="movieItem">' +
                     '   <a href="' + item.douban_url + '"><img class="poster" src="' + item.thumbnail_url + '"></a>' +
@@ -139,6 +162,7 @@ let main = {
                     '       <div class="movieTab">' +
                     '           <span class="' + (item.type === "电影" ? "movieType1" : "movieType2") + '">' + item.type + '</span>' +
                     '           <span class="movieYear">&nbsp;' + item.year + '</span>' +
+                    tags.join('') +
                     '       </div>' +
                     '       <div class="updateTime">' +
                     '           <label class="common-label">更新时间：</label>' +
@@ -159,6 +183,7 @@ let main = {
         }
 
         $('#moviesListContent').append(moviesHtml);
+        main.initTagEvent();
     },
     getRateHtml: function (rate) {
         let point = parseFloat(rate / 2).toFixed(1);

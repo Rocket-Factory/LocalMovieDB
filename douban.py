@@ -1,19 +1,41 @@
 # coding: utf-8
 import json
-import re
-import time
 from datetime import datetime
 import requests
-from bs4 import BeautifulSoup
+from config import DB_API_KEY, DB_NAME, DB_PASSWORD
 
-from config import DB_API_KEY
+UA = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)'
 
-def get_db_id2(name,year):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
+
+def login():
+    url_basic = 'https://accounts.douban.com/j/mobile/login/basic'
+    url = 'https://www.douban.com/'
+    ua_headers = {"User-Agent": UA}
+    data = {
+        'ck': '',
+        'name': DB_NAME,
+        'password': DB_PASSWORD,
+        'remember': 'True',
+        'ticket': ''
+    }
+
+    s = requests.session()
+    r0 = s.get(url=url_basic, headers=ua_headers)
+    r1 = s.post(url=url_basic, headers=ua_headers, data=data)
+    r2 = s.get(url=url, headers=ua_headers)
+
+    if json.loads(r1.text)['status'] == 'success':
+        return s
+    else:
+        return None
+
+
+def get_db_id2(s,name, year):
+    headers = {'User-Agent': UA}
     url = 'https://movie.douban.com/j/subject_suggest?q={}'.format(name)
-    for i in range(0,5):
+    for i in range(0, 5):
         try:
-            r = requests.get(url,headers=headers)
+            r = s.get(url, headers=headers)
             r.encoding = 'utf-8'
             info_json = json.loads(r.text)
             for movie_info in info_json:
@@ -23,39 +45,13 @@ def get_db_id2(name,year):
             print('第{}次获取ID错误'.format(i))
     return None
 
-def get_db_id(name, year):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
-    url = 'https://www.douban.com/search?cat=1002&q={}'.format(name)
-    try:
-        r = requests.get(url, headers=headers)
-        html = r.text
-        soup = BeautifulSoup(html, features="html.parser")
-        results = soup.find('div', class_='result-list').find_all('div', class_='result')
-    except AttributeError:
-        time.sleep(3)
-        r = requests.get(url, headers=headers)
-        html = r.text
-        soup = BeautifulSoup(html, features="html.parser")
-        results = soup.find('div', class_='result-list').find_all('div', class_='result')
 
-    for subject in results:
-        subject_cast = subject.find('span', class_='subject-cast')
-        subject_year = re.search('/ (\d{4})', subject_cast.text).group(1).strip()
-        subject_name = subject.find('div', class_='title').h3.a.text.strip()
-
-        if subject_name == name and subject_year == year:
-            subject_url = subject.find('div', class_='title').h3.a.attrs['href']
-            return re.search('%2Fsubject%2F(\d+)%2F', subject_url).group(1)
-
-    return None
-
-
-def get_db_info(subject_id, uri):
+def get_db_info(s,subject_id, uri):
     url = 'https://api.douban.com/v2/movie/subject/{}?apikey={}'.format(subject_id, DB_API_KEY)
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
-    for i in range(0,5):
+    headers = {'User-Agent': UA}
+    for i in range(0, 5):
         try:
-            r = requests.get(url, headers=headers)
+            r = s.get(url, headers=headers)
             r.encoding = 'utf-8'
             info_json = json.loads(r.text)
             result = {'basic': {
@@ -73,4 +69,3 @@ def get_db_info(subject_id, uri):
         except Exception:
             print('第{}次获取ID错误'.format(i))
     return None
-

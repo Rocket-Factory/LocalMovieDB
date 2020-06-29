@@ -32,13 +32,14 @@ def get_movies():
         args.pop('order_by')
     tags = []
     if 'tags' in args:
-        tags = args['tags'].split(',')
+        if args['tags'] != '':
+            tags = args['tags'].split(',')
         args.pop('tags')
     session = DBSession()
     query = session.query(Movie)
     if 'q' in args:
         query = query.filter(Movie.title.like('%{}%'.format(args['q'])))
-    if tags:
+    if len(tags) > 0:
         alaised_movie_tag = dict()
         alaised_tag = dict()
         for i, tag in enumerate(tags):

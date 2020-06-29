@@ -3,10 +3,9 @@ import os
 import time
 from database import DBSession, Movie, Tag, MovieTag
 from config import MOVIE_DIR_RE, ROOT_DIR
-from douban import get_db_id2, get_db_info
+from douban import get_db_id2, get_db_info, login
 
 realpath = os.path.split(os.path.realpath(__file__))[0]
-
 
 MOVIES = []
 
@@ -14,9 +13,9 @@ FAILED_MOVIES = []
 
 
 def writeErrorLog():
-    with open( os.path.join(realpath,'error.log'),'w') as f:
+    with open(os.path.join(realpath, 'error.log'), 'w') as f:
         for movie in FAILED_MOVIES:
-            f.write(movie[0] + movie[1]+ ': ' + movie[2] + '\n')
+            f.write(movie[0] + movie[1] + ': ' + movie[2] + '\n')
 
 
 def search(path):
@@ -43,7 +42,7 @@ def movie_exists(movie):
 
 def update_or_insert(info):
     session = DBSession()
-    target_movie = session.query(Movie).filter_by(**{'title': info['basic']['title'], 'year': info['basic']['year']})\
+    target_movie = session.query(Movie).filter_by(**{'title': info['basic']['title'], 'year': info['basic']['year']}) \
         .first()
     if target_movie:
         target_movie.uri = info['basic']['uri']
@@ -54,6 +53,8 @@ def update_or_insert(info):
         session.add(new_movie)
 
         for tag in info['tags']:
+            if session.query(Tag).filter(Tag.text == tag).count() > 0:
+                continue
             new_tag = Tag(tag)
             session.add(new_tag)
             session.flush()
@@ -66,26 +67,28 @@ def update_or_insert(info):
 
 def run():
     search(ROOT_DIR)
-    timeout = 0
+    s = login()
+    if s:
+        print('豆瓣登录成功\n')
+    else:
+        print('豆瓣登录失败，正在退出...\n')
     for index, movie in enumerate(MOVIES):
         if movie_exists(movie):
             continue
         print(movie[2])
-        if timeout < 60:
-            time.sleep(timeout + 2 * index)
-        db_id = get_db_id2(movie[0], movie[1])
+        time.sleep(1)
+
+        db_id = get_db_id2(s, movie[0], movie[1])
         if not db_id:
             print('获取豆瓣Subject ID错误')
             FAILED_MOVIES.append(movie)
             continue
-        db_info = get_db_info(db_id, movie[2][len(ROOT_DIR):])
+        db_info = get_db_info(s, db_id, movie[2][len(ROOT_DIR):])
         if not db_info:
             print('获取豆瓣Subject信息错误')
             FAILED_MOVIES.append(movie)
             continue
         update_or_insert(db_info)
-
-
 
 
 run()

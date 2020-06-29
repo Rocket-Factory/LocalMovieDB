@@ -33,6 +33,10 @@
                     <li value="douban_rating">按评分</li>
                 </ul>
             </div>
+            <div id="filterTags" class="filterItem">
+                <label class="filterLabel">已选择标签：</label>
+                <ul id="menuSelectedTags" class="filterOptions"></ul>
+            </div>
         </div>
         <div style="margin-top: 25px;text-decoration: none" class="filterContent"><a href="{{ browser_link }}">
             <button type="button" class="btn btn-primary btn-block">浏览文件</button>
@@ -46,6 +50,7 @@
                 <input id="queryInput" class="searchInput" placeholder="输入电影名称">
                 <button id="searchBtn" class="btn btn-confirm searchBtn" type="button">Search</button>
             </div>
+                         <ul id="selectedTags"></ul>
         </div>
         <div id="moviesListContent"></div>
     </div>
