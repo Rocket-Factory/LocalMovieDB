@@ -92,14 +92,16 @@ let main = {
         $('#fixedLogo').off('click').on('click', function () {
             $('.sideMenu').animate({left: 0}, 'fast');
             $('body').off('click').on('click', function (e) {
-                console.log($(e.target));
                 if (
                     !($(e.target).attr('id') === 'fixedLogo'
                         || $(e.target).hasClass('sideMenu')
                         || $(e.target).hasClass('filterContent')
+                        // || $(e.target).hasClass('filterItem')
+                        // || $(e.target).parent().hasClass('filterItem')
+                        // || $(e.target).parent().hasClass('filterOptions')
                         || $(e.target).hasClass('filterItem')
-                        || $(e.target).parent().hasClass('filterItem')
-                        || $(e.target).parent().hasClass('filterOptions'))
+                        || $(e.target).hasClass('filterOptions')
+                    )
                 ) {
                     $('.sideMenu').animate({left: '-250px'}, 'fast');
                     $('body').off('click');
@@ -158,10 +160,10 @@ let main = {
                     '   <div class="movieInfo">' +
                     '       <p class="movieTitle" title="' + item.title + '">' +
                     item.title + (item.original_title !== item.title ? '&nbsp;/&nbsp;' + item.original_title : '') +
+                    '           <span class="movieYear">&nbsp;(' + item.year + ')</span>' +
                     '       </p>' +
                     '       <div class="movieTab">' +
                     '           <span class="' + (item.type === "电影" ? "movieType1" : "movieType2") + '">' + item.type + '</span>' +
-                    '           <span class="movieYear">&nbsp;' + item.year + '</span>' +
                     tags.join('') +
                     '       </div>' +
                     '       <div class="updateTime">' +
@@ -225,6 +227,19 @@ let main = {
         function padLeftZero(str) {
             return ('00' + str).substr(str.length)
         }
+    },
+    reset:function () {
+        this.orderBy = '';
+        this.orderType = 'asc';
+        this.queryYear = '';
+        this.curPage = 1;
+        this.queryTags = [];
+
+        $('#queryInput').val('');
+        $('#selectedTags,#menuSelectedTags').html('');
+        $('.orderMenu li .fa').remove();
+        $('.orderMenu li').removeClass('active');
+        this.getData()
     }
 };
 
