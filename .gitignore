@@ -133,3 +133,4 @@ config.py
 movies.db
 
 .idea
+.vscode/

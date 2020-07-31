@@ -84,7 +84,7 @@ def run():
             print('获取豆瓣Subject ID错误')
             FAILED_MOVIES.append(movie)
             continue
-        db_info = get_db_info(s, db_id, movie[2][len(ROOT_DIR):])
+        db_info = get_db_info(s, db_id, movie[2][len(ROOT_DIR):],movie[0])
         if not db_info:
             print('获取豆瓣Subject信息错误')
             FAILED_MOVIES.append(movie)
