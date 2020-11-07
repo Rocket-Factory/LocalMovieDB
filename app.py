@@ -1,19 +1,26 @@
 from flask import Flask, render_template, request, jsonify
 from sqlalchemy.orm import aliased
-
+from sqlalchemy.sql.expression import func
 from database import Movie, Tag, MovieTag, DBSession
 from sqlalchemy import text
 from config import PAGE_TITLE, PRE_URI, BROWSER_LINK, AFTER_URI
+import logging
 
 app = Flask(__name__, static_url_path='',
             static_folder='static')
 
+logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
 def index():
     return render_template('index.html', title=PAGE_TITLE, pre_uri=PRE_URI, browser_link=BROWSER_LINK,
                            after_uri=AFTER_URI)
 
+@app.route('/api/movies/random')
+def get_random_movie():
+    session = DBSession()
+    movie = session.query(Movie).order_by(func.random()).limit(1)[1]
+    return movie.to_json()
 
 @app.route('/api/movies')
 def get_movies():

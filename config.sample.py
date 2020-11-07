@@ -1,6 +1,3 @@
-# 豆瓣API密钥
-DB_API_KEY = ''
-
 # 本地检索路径(如/mnt/Media/)
 ROOT_DIR = ''
 
@@ -18,9 +15,3 @@ PAGE_TITLE = 'Movie DB'
 
 # 浏览链接(页面侧栏浏览按钮对应链接)
 BROWSER_LINK = ''
-
-# 豆瓣账户（抓取ID需要）
-DB_NAME = ''
-
-DB_PASSWORD = ''
-

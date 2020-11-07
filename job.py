@@ -3,31 +3,40 @@ import os
 import time
 from database import DBSession, Movie, Tag, MovieTag
 from config import MOVIE_DIR_RE, ROOT_DIR
-from douban import get_db_id2, get_db_info, login
-
+from douban import get_movie
+import logging
 realpath = os.path.split(os.path.realpath(__file__))[0]
 
-MOVIES = []
-
-FAILED_MOVIES = []
+logging.basicConfig(level=logging.INFO)
 
 
-def writeErrorLog():
-    with open(os.path.join(realpath, 'error.log'), 'w') as f:
-        for movie in FAILED_MOVIES:
-            f.write(movie[0] + movie[1] + ': ' + movie[2] + '\n')
+#遍历路径搜索视频文件 
+def search_video_files(path, files):
+    for file in os.listdir(path):
+        if os.path.isfile(os.path.join(path, file)):   
+            if file.split('.')[-1] in ['mp4', 'mkv', 'ts']:
+                files.append(os.path.join(path, file))
+            continue
+        search_video_files(os.path.join(path, file),files)
+        
+        
 
-
-def search(path):
+# 遍历路径搜索电影
+def search_movie(path, movies):
     for file in os.listdir(path):
         if not os.path.isdir(os.path.join(path, file)):
             continue
-
         re_result = re.match(MOVIE_DIR_RE, file)
-        if re_result and (re_result.group(1), re_result.group(2)) not in MOVIES:
-            MOVIES.append((re_result.group(1), re_result.group(2), os.path.join(path, file)))
-            continue
-        search(os.path.join(path, file))
+        if re_result:
+            video_files = []
+            search_video_files(os.path.join(path, file), video_files)
+            video_files.sort()
+            video_files = [video_file[len(ROOT_DIR):] for video_file in video_files]
+            video_files_str = ','.join(video_files)
+            logging.debug('找到视频文件: {}'.format(video_files_str))
+            if (re_result.group(1), re_result.group(2), os.path.join(path, file), video_files_str) not in movies:
+                movies.append((re_result.group(1), re_result.group(2), os.path.join(path, file), video_files_str))
+        search_movie(os.path.join(path, file), movies)
 
 
 def movie_exists(movie):
@@ -67,29 +76,20 @@ def update_or_insert(info):
 
 
 def run():
-    search(ROOT_DIR)
-    s = login()
-    if s:
-        print('豆瓣登录成功\n')
-    else:
-        print('豆瓣登录失败，正在退出...\n')
-    for index, movie in enumerate(MOVIES):
+    movies = []
+    search_movie(ROOT_DIR, movies)
+    for index, movie in enumerate(movies):
         if movie_exists(movie):
             continue
-        print(movie[2])
+        logging.info('[{}/{}]获取电影: {}'.format(index,len(movies),movie[2]))
+        db_info = get_movie(movie[0], movie[1] )
+        if not db_info:
+            continue
+        db_info['basic']['uri'] =  movie[2][len(ROOT_DIR):]
+        db_info['basic']['viedo_files'] =  movie[3]
+        update_or_insert(db_info)
         time.sleep(1)
 
-        db_id = get_db_id2(s, movie[0], movie[1])
-        if not db_id:
-            print('获取豆瓣Subject ID错误')
-            FAILED_MOVIES.append(movie)
-            continue
-        db_info = get_db_info(s, db_id, movie[2][len(ROOT_DIR):],movie[0])
-        if not db_info:
-            print('获取豆瓣Subject信息错误')
-            FAILED_MOVIES.append(movie)
-            continue
-        update_or_insert(db_info)
 
-
-run()
+if __name__ =='__main__':
+    run()
