@@ -159,7 +159,7 @@ let main = {
                     '   <a href="' + item.douban_url + '"><img class="poster" src="' + item.thumbnail_url + '"></a>' +
                     '   <div class="movieInfo">' +
                     '       <p class="movieTitle" title="' + item.title + '">' +
-                    item.title + (item.original_title !== item.title ? '&nbsp;/&nbsp;' + item.original_title : '') +
+                    item.title + (item.original_title !== '' ? '&nbsp;/&nbsp;':'') + item.original_title +
                     '           <span class="movieYear">&nbsp;(' + item.year + ')</span>' +
                     '       </p>' +
                     '       <div class="movieTab">' +
