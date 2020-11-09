@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>详情</title>
+    <meta name="referrer" content="no-referrer"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes"/>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+  {% raw %}
+    <div id="app">
+        <el-header>Header</el-header>
+        <el-main>
+          <div class="movie_title">{{title}}</div>
+          <div class="playOption"> 
+            <el-select size="small" v-model="playType" placeholder="选择App">
+              <el-option
+                v-for="item in playOptions"
+                :key="item.label"
+                :label="item.label"
+                :value="item.label">
+              </el-option>
+            </el-select>
+          </div>
+          <div class="movie_play">
+            <ul id="playLinks">
+              <li v-for="(video,index) in playList" :key="video.link">
+                <a :href="video.link">视频链接{{ index+1 }}</a>
+              </li>
+            </ul>
+          </div>
+        </el-main>
+        <el-footer>footer</el-footer>
+    </div>
+    {% endraw %}
+
+</div>
+</body>
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    new Vue({
+      el: '#app',
+      data: function() {
+        return {
+             playOptions:[{label:'nPlayer'},{label:'MXPlayer'},{label:'MXPlayer Pro'}],
+             playType: 'nPlayer',
+             videoFiles: [],
+             title:'',
+             originalTitle: '',
+             uri: '',
+             doubanUrl: '',
+             thumbnailUrl: ''
+             }
+      },
+      computed:{
+        playList:function(){  
+          let playList = [];
+          if (this.playType === 'nPlayer'){
+            for (video of this.videoFiles){
+                playList.push({link:`nplayer-{{ play_uri }}${video}`});
+            }
+          }
+          if (this.playType === 'MXPlayer') {
+            for (video of this.videoFiles){
+                playList.push({link:`intent:{{ play_uri }}${video}#Intent;package=com.mxtech.videoplayer.ad;S.title=New%20title;end`}); 
+            }
+          };
+          if (this.playType === 'MXPlayer Pro') {
+            for (video of this.videoFiles){
+                playList.push({link:`intent:{{ play_uri }}${video}#Intent;package=com.mxtech.videoplayer.pro;S.title=New%20title;end`}); 
+            }
+          }
+          return playList
+        }
+      },
+      methods:{
+        getData: function(){
+          let vm = this;
+            axios.get('{{ url }}/api/movie/{{ mid }}').then(function(response) {
+              let data = response.data;
+              vm.videoFiles = data.viedo_files.split(',');
+              vm.title = data.title;
+              vm.originalTitle = data.original_title;
+              vm.uri = data.uri;
+              vm.doubanUrl = data.douban_url;
+              vm.thumbnailUrl = data.thumbnail_url;            
+
+            }).catch(function (error) {
+                console.log(error);
+            });
+        }
+      },
+      mounted: function(){
+        this.getData();
+      }
+    });
+  </script>
+</html>

@@ -4,6 +4,9 @@ ROOT_DIR = ''
 # 资源链接前缀(如http://192.168.x.x:xxx/media/、ftp://192.168...)
 PRE_URI = ''
 
+# 播放链接前缀
+PLAY_URI = ''
+
 # 资源链接后缀(避免路径不对无法访问的情况)
 AFTER_URI = '/'
 
@@ -15,3 +18,6 @@ PAGE_TITLE = 'Movie DB'
 
 # 浏览链接(页面侧栏浏览按钮对应链接)
 BROWSER_LINK = ''
+
+# 本程序URL
+URL = 'http://127.0.0.1:5001'

@@ -3,7 +3,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import func
 from database import Movie, Tag, MovieTag, DBSession
 from sqlalchemy import text
-from config import PAGE_TITLE, PRE_URI, BROWSER_LINK, AFTER_URI
+from config import PAGE_TITLE, PRE_URI, BROWSER_LINK, AFTER_URI, URL, PLAY_URI
 import logging
 
 app = Flask(__name__, static_url_path='',
@@ -16,11 +16,29 @@ def index():
     return render_template('index.html', title=PAGE_TITLE, pre_uri=PRE_URI, browser_link=BROWSER_LINK,
                            after_uri=AFTER_URI)
 
+
+@app.route('/movie/dbid/<int:dbid>')
+def get_movie(dbid):
+    session = DBSession()
+    movie = session.query(Movie).filter(Movie.douban_url== 'https://m.douban.com/movie/subject/{}/'.format(dbid)).one()
+    mid = movie.id
+    return render_template('movie.html',mid=mid, url=URL, play_uri = PLAY_URI)
+
+
 @app.route('/api/movies/random')
 def get_random_movie():
     session = DBSession()
     movie = session.query(Movie).order_by(func.random()).limit(1)[1]
-    return movie.to_json()
+    return jsonify(movie.to_json())
+
+
+@app.route('/api/movie/<int:mid>')
+def get_movie_api(mid):
+    session = DBSession()
+    query = session.query(Movie)
+    movie = query.get(mid)
+    return jsonify(movie.to_json())
+
 
 @app.route('/api/movies')
 def get_movies():

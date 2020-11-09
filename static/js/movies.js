@@ -171,7 +171,7 @@ let main = {
                     '           <span class="itemValue">' + item.update_date.slice(0, 20) + '</span>' +
                     '       </div>' +
                     '       <div class="uri">' +
-                    '           <label class="common-label">路径：</label>' +
+                                '<label class="common-label"><a href="' + '/movie/dbid/' + item.douban_url.split('/')[5]  + '">App播放</a></label>&nbsp;/&nbsp;' +
                     '           <span class="itemValue"><a href="' + pre_uri + item.uri + after_uri + '">' + item.uri + '</a></span>' +
                     '       </div>' +
                     '       <div class="doubanRating"><label class="豆瓣评分："></label>' + main.getRateHtml(item.douban_rating) + '</div>' +
