@@ -40,6 +40,7 @@ def get_db_info(subject_id):
         '_type': '剧集' if info_json['is_tv'] else '电影',
         'original_title': info_json['original_title'],
         'year': int(info_json['year']),
+        'intro': info_json['intro'],
         'update_date': datetime.now(),
         'douban_url': 'https://m.douban.com/movie/subject/{}/'.format(subject_id),
         'thumbnail_url': info_json['pic']['large'],

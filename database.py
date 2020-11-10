@@ -29,10 +29,11 @@ class Movie(Base):
     douban_url = Column(TEXT)  # 豆瓣链接
     thumbnail_url = Column(TEXT)  # 缩略图
     douban_rating = Column(TEXT)  # 豆瓣评分
+    intro = Column(TEXT) #简介
     viedo_files =  Column(TEXT)
 
     def __init__(self, title, _type, original_title, year, update_date, uri, douban_url, thumbnail_url,
-                 douban_rating, viedo_files):
+                 douban_rating, intro, viedo_files):
         self.title = title
         self.type = _type
         self.original_title = original_title
@@ -42,6 +43,7 @@ class Movie(Base):
         self.douban_url = douban_url
         self.thumbnail_url = thumbnail_url
         self.douban_rating = douban_rating
+        self.intro = intro
         self.viedo_files = viedo_files
 
     def __repr__(self):

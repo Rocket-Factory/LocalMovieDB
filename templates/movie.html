@@ -7,18 +7,15 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes"/>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-    <style type="text/css">
-
-    </style>
+    <link href="/css/movie.css" type="text/css" rel="stylesheet">
 </head>
 <body>
   {% raw %}
     <div id="app">
-        <el-header>Header</el-header>
-        <el-main>
-          <div class="movie_title">{{title}}</div>
+        <el-header>
+          <div class="logoIcon"> </div>
           <div class="playOption"> 
-            <el-select size="small" v-model="playType" placeholder="选择App">
+            <el-select v-model="playType" placeholder="选择App">
               <el-option
                 v-for="item in playOptions"
                 :key="item.label"
@@ -27,24 +24,33 @@
               </el-option>
             </el-select>
           </div>
-          <div class="movie_play">
-            <ul id="playLinks">
-              <li v-for="(video,index) in playList" :key="video.link">
-                <a :href="video.link">视频链接{{ index+1 }}</a>
-              </li>
-            </ul>
+        </el-header>
+        <el-main>
+          <el-breadcrumb separator="/">
+            <el-breadcrumb-item><a href="/">首页</a></el-breadcrumb-item>
+            <el-breadcrumb-item><a href="#">{{fullTitle}}</a></el-breadcrumb-item>
+          </el-breadcrumb>
+          <div><p>
+            {{ intro }}
+          </p></div>
+          <div class="moviePlay">
+            <div class=playTitle>播放列表</div>
+            <div class="playLinks">
+              <span v-for="(video,index) in playList" :key="video.link">
+                <el-button class="videoButton" type="info" @click="goToApp(video.link)">{{ index+1 }}</el-button>
+              </span>
+            </div>
           </div>
         </el-main>
-        <el-footer>footer</el-footer>
+        <el-footer></el-footer>
     </div>
     {% endraw %}
 
 </div>
 </body>
-<script src="https://unpkg.com/vue/dist/vue.js"></script>
-<!-- import JavaScript -->
-<script src="https://unpkg.com/element-ui/lib/index.js"></script>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.14.0/index.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.0/axios.js"></script>
 <script>
     new Vue({
       el: '#app',
@@ -56,6 +62,7 @@
              title:'',
              originalTitle: '',
              uri: '',
+             intro: '',
              doubanUrl: '',
              thumbnailUrl: ''
              }
@@ -79,6 +86,12 @@
             }
           }
           return playList
+        },
+        fullTitle: function(){
+          if(this.originalTitle !== ''){
+            return `${this.title} / ${this.originalTitle}`;
+          }
+          return this.title;
         }
       },
       methods:{
@@ -89,6 +102,7 @@
               vm.videoFiles = data.viedo_files.split(',');
               vm.title = data.title;
               vm.originalTitle = data.original_title;
+              vm.intro = data.intro;
               vm.uri = data.uri;
               vm.doubanUrl = data.douban_url;
               vm.thumbnailUrl = data.thumbnail_url;            
@@ -96,9 +110,12 @@
             }).catch(function (error) {
                 console.log(error);
             });
+        },
+        goToApp: function(link){
+          window.open(link);
         }
       },
-      mounted: function(){
+      created: function(){
         this.getData();
       }
     });

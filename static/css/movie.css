@@ -1,0 +1,46 @@
+.el-header{
+    background:#313a46;
+    display: -webkit-flex;
+    display: flex;
+    flex-direction: row;
+    flex-wrap:nowrap;
+    justify-content:space-between;
+  }
+  .logoIcon {
+    background: url(/img/taosky.jpg) no-repeat 0 0;
+    background-size: 100%;
+    margin-top: 5px;
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    border-radius: 50%;
+  }
+  .playOption {
+    width: 150px;
+    margin: 10px;
+  }
+  .moviePlay{
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+    margin-top: 20px;
+  }
+  .playTitle{
+    border-bottom: 1px solid #ebeef5;
+    margin: 10px 0 0 10px;
+    height: 30px; 
+    color: #9d3737;
+    font-size: 18px;
+  }
+  .playLinks {
+    display: -webkit-flex;
+    display: flex;
+    flex-direction: row;
+    flex-wrap:wrap;
+    
+  }
+  .videoButton{
+    margin:10px;
+    width:80px;
+  }
+  .el-breadcrumb{
+    font-size: 16px;
+  }
