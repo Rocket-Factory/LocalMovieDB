@@ -22,7 +22,7 @@ def get_movie(dbid):
     session = DBSession()
     movie = session.query(Movie).filter(Movie.douban_url== 'https://m.douban.com/movie/subject/{}/'.format(dbid)).one()
     mid = movie.id
-    return render_template('movie.html',mid=mid, url=URL, play_uri = PLAY_URI)
+    return render_template('movie.html',mid=mid, url=URL, play_uri = PLAY_URI, dbid=dbid)
 
 
 @app.route('/api/movies/random')
