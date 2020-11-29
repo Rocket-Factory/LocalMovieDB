@@ -12,7 +12,7 @@ def get_db_id(name, year):
     true_name = name
     # 处理特殊符号
     for index,s in enumerate(name):
-        if s in [',', ':','(','[']:
+        if s in [',', ':','(','[', ' ']:
             name = name[:index]
             break
     headers = {
@@ -22,7 +22,7 @@ def get_db_id(name, year):
     if 'code' in r.json():
         return None
     for movie_info in r.json():
-        if movie_info['title'] == true_name and movie_info['year'] == year:
+        if (movie_info['title'] == true_name or ''.join(movie_info['title'].split()) == ''.join(true_name.split())) and movie_info['year'] == year:
             return movie_info['id']
     return None
 
