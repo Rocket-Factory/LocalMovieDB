@@ -44,7 +44,7 @@ def get_db_info(subject_id):
         'update_date': datetime.now(),
         'douban_url': 'https://m.douban.com/movie/subject/{}/'.format(subject_id),
         'thumbnail_url': info_json['pic']['large'],
-        'douban_rating': info_json['rating']['value']},
+        'douban_rating': info_json['rating']['value'] if info_json['rating'] else -1},
         'tags': [tag['name'] for tag in info_json['tags']]
     }
     return result
