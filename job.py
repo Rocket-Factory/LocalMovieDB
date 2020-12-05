@@ -87,6 +87,7 @@ def run():
             continue
         db_info['basic']['uri'] =  movie[2][len(ROOT_DIR):]
         db_info['basic']['viedo_files'] =  movie[3]
+        db_info['basic']['title'] = movie[0]
         update_or_insert(db_info)
         time.sleep(1)
 
