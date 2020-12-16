@@ -29,7 +29,7 @@
                     <li value="title">按名称</li>
                     <li value="type">按类型</li>
                     <li value="year">按年代</li>
-                    <li value="update_date">按更新时间</li>
+                    <li class="active" value="update_date">按上新<i class="fa fa-long-arrow-down"></i></li>
                     <li value="douban_rating">按评分</li>
                 </ul>
             </div>
@@ -39,7 +39,7 @@
             </div>
         </div>
         <div style="margin-top: 25px;text-decoration: none" class="filterContent">
-            <button type="button" class="btn btn-primary btn-block" onclick="main.reset()">重置查询</button>
+            <!-- <button type="button" class="btn btn-primary btn-block" onclick="main.reset()">重置查询</button> -->
         </div>
         <div style="margin-top: 25px;text-decoration: none" class="filterContent"><a href="{{ browser_link }}">
             <button type="button" class="btn btn-primary btn-block">浏览文件</button>
@@ -54,6 +54,23 @@
                 <button id="searchBtn" class="btn btn-confirm searchBtn" type="button">Search</button>
             </div>
                          <ul id="selectedTags"></ul>
+        </div>
+        <div class="mOptions">
+            <div id="topTags" class="hotTag">
+                <p>热门标签：</p>
+            </div>
+            <div class="filterContent">
+                <div id="mFilterTags" class="filterItem">
+                    <label class="filterLabel"></label>
+                    <ul id="mMenuSelectedTags" class="filterOptions"></ul>
+                </div>
+                <div class="filterItem">
+                    <ul class="orderMenu filterOptions">
+                        <li class="active" value="update_date">按上新<i class="fa fa-long-arrow-down"></i></li>
+                        <li value="douban_rating">按评分</li>
+                    </ul>
+                </div>
+            </div>
         </div>
         <div id="moviesListContent"></div>
     </div>

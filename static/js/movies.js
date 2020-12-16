@@ -4,6 +4,8 @@ $().ready(function () {
 
 // let apiUrl = "./js/data.json"; //测试数据,部署时注释掉
 let apiUrl = "/api/movies";//实际接口
+let apiUrlTag = "/api/tags/top";//实际接口
+
 let main = {
     orderBy: '',
     orderType: 'asc',
@@ -18,6 +20,18 @@ let main = {
         main.initScrollEvent();
 
         main.getData();
+        
+        $.ajax({
+            url: apiUrlTag,
+            type: "GET",
+            success: function (data) {
+                main.refresHotTags(data);
+            },
+            error: function (e) {
+                console.error(e);
+                alert("请求失败！");
+            },
+        })
     },
     getData: function (loading) {
         $('#moviesListContent').html('');
@@ -135,6 +149,18 @@ let main = {
                 let $li = '<li class="tabOptions" data-tag="' + curTag + '">' + $(this).text() + '<i class="fa fa-times" onclick="main.removeTag(\'' + curTag + '\')" style="margin-left: 3px"></i></li>';
                 $('#selectedTags').append($li);
                 $('#menuSelectedTags').append($li);
+                $('#mMenuSelectedTags').append($li);
+                main.queryTags.push(curTag);
+                main.getData(false);
+            }
+        });
+        $('.mOptions .movieTag').off('click').on('click', function () {
+            let curTag = $(this).text();
+            if (main.queryTags.indexOf(curTag) === -1) {
+                let $li = '<li class="tabOptions" data-tag="' + curTag + '">' + $(this).text() + '<i class="fa fa-times" onclick="main.removeTag(\'' + curTag + '\')" style="margin-left: 3px"></i></li>';
+                $('#selectedTags').append($li);
+                $('#menuSelectedTags').append($li);
+                $('#mMenuSelectedTags').append($li);
                 main.queryTags.push(curTag);
                 main.getData(false);
             }
@@ -156,7 +182,7 @@ let main = {
                 });
                 moviesHtml +=
                     '<div class="movieItem">' +
-                    '   <a href="' + item.douban_url + '"><img class="poster" src="' + item.thumbnail_url + '"></a>' +
+                    '   <a href="' + '/movie/dbid/' + item.douban_url.split('/')[5]  + '"><div class="poster" style="background-image: url(' + item.thumbnail_url + ')"></div></a>' + '      <a href="' + '/movie/dbid/' + item.douban_url.split('/')[5]  + '"><img class="smallPoster" src=' + item.thumbnail_url + '></a>' +
                     '   <div class="movieInfo">' +
                     '       <p class="movieTitle" title="' + item.title + '">' +
                     item.title + (item.original_title !== '' ? '&nbsp;/&nbsp;':'') + item.original_title +
@@ -171,8 +197,8 @@ let main = {
                     '           <span class="itemValue">' + item.update_date.slice(0, 20) + '</span>' +
                     '       </div>' +
                     '       <div class="uri">' +
-                                '<label class="common-label"><a href="' + '/movie/dbid/' + item.douban_url.split('/')[5]  + '">App播放</a></label>&nbsp;/&nbsp;' +
-                    '           <span class="itemValue"><a href="' + pre_uri + item.uri + after_uri + '">' + item.uri + '</a></span>' +
+                                '<label class="common-label"><a href="'  + pre_uri + item.uri + after_uri  +'">浏览</a></label>&nbsp;/&nbsp;' +
+                    '           <span class="itemValue"><a href="'+ item.douban_url  + '">' + '豆瓣' + '</a></span>' +
                     '       </div>' +
                     '       <div class="doubanRating"><label class="豆瓣评分："></label>' + main.getRateHtml(item.douban_rating) + '</div>' +
                     '   </div>' +
@@ -186,6 +212,12 @@ let main = {
 
         $('#moviesListContent').append(moviesHtml);
         main.initTagEvent();
+    },
+    refresHotTags:function(data){
+        data.forEach(function(tag){
+            $('#topTags').append('<span class="movieTag">'+ tag[0] + '</span>');
+        })
+        
     },
     getRateHtml: function (rate) {
         let point = parseFloat(rate / 2).toFixed(1);

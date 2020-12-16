@@ -42,7 +42,7 @@ def search_movie(path, movies):
 def movie_exists(movie):
     session = DBSession()
     target_movie = session.query(Movie).filter_by(
-        **{'title': movie[0], 'year': movie[1], 'uri': movie[2][len(ROOT_DIR):]}).first()
+        **{'title': movie[0], 'year': movie[1], 'uri': movie[2][len(ROOT_DIR):], 'viedo_files': movie[3]}).first()
     session.close()
     if target_movie:
         return True
@@ -56,6 +56,8 @@ def update_or_insert(info):
     if target_movie:
         target_movie.uri = info['basic']['uri']
         target_movie.update_date = info['basic']['update_date']
+        target_movie.viedo_files = info['basic']['video_files']
+
 
     else:
         new_movie = Movie(**info['basic'])
@@ -86,7 +88,7 @@ def run():
         if not db_info:
             continue
         db_info['basic']['uri'] =  movie[2][len(ROOT_DIR):]
-        db_info['basic']['viedo_files'] =  movie[3]
+        db_info['basic']['video_files'] =  movie[3]
         db_info['basic']['title'] = movie[0]
         update_or_insert(db_info)
         time.sleep(1)

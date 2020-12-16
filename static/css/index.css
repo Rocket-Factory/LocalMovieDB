@@ -4,6 +4,7 @@ html, body {
     padding: 0;
     /*min-width: 1000px;*/
     background: #f0f2f5;
+    font-family: -apple-system, "Droid Sans", Helvetica, sans-serif;
 }
 
 .pageContent {
@@ -56,6 +57,9 @@ html, body {
     height: 60px;
     background: #fff;
     padding-left: 10px;
+}
+.mOptions {
+    display: none;
 }
 
 .logoIcon {
@@ -140,11 +144,14 @@ html, body {
     vertical-align: top;
 }
 
-.poster {
+.smallPoster {
     width: 100px;
     height: 130px;
 }
+.poster {
+    display:none;
 
+}
 .movieInfo {
     display: inline-block;
     margin-left: 10px;
@@ -373,9 +380,90 @@ ul.filterOptions li:hover, ul.filterOptions li.active {
         position: fixed;
         z-index: 8;
     }
+    #moviesListContent {
+        margin-top: 0;
+    }
+
+    .mOptions  {
+        outline: none;
+        font-weight: 400;
+        display: block;
+        margin-top: 80px;
+
+    }
+    .mOptions .hotTag {
+        padding:0 20px;
+    }
+    #topTags {
+        font-size:18px;
+    }
+    .mOptions .movieTag {
+        height: 26px;
+        line-height: 26px;
+        font-size: 18px;
+    }
+    .mOptions .tabOptions {
+        font-size:18px;
+    }
+    .mOptions .filterContent {
+        margin-top: 0;
+    }
+    .mOptions li {
+        display:inline-block;
+        margin: 0 5px 0 0;
+    }
+    .mOptions ul.filterOptions li:hover, .mOptions ul.filterOptions li.active {
+        cursor: pointer;
+        color: rgba(0,0,0,.9);
+    }
+    .mOptions .filterItem {
+        width: 100%;
+        text-align:right;
+        font-size: 21px;
+        line-height: 1.1;
+        color: rgba(0,0,0,.5)!important;
+    }
+    .mOptions #mFilterTags{
+        text-align: left;
+    }
 
     .movieItem {
+        width: calc((100% - 30px) / 3);
+        margin-right:10px;
+    }
+    .poster {
+        display:block!important;
         width: 100%;
+        height: 0;
+        border-radius: 4px;
+        position: relative;
+        padding-top: 140.44%;
+        background-position: center;
+        background-size: cover;
+    }
+    .smallPoster {
+        display:none;
+    }
+    .movieInfo {
+        display:block;
+        width:auto;
+    }
+    .movieTab, .movieYear, .movieInfo .movieTag,.updateTime,.uri {
+        display: none;
+    }
+
+    .movieTitle {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 23px;
+        color: rgba(0,0,0,.9);
+        margin-top: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .doubanRating {
+        margin-top:-10px!important;
     }
 
     #orderBtn, #filterBtn {
@@ -401,10 +489,10 @@ ul.filterOptions li:hover, ul.filterOptions li.active {
         padding-left: 10px;
         padding-right: 10px;
     }
-
+/* 
     .movieInfo {
         width: calc(100% - 120px);
-    }
+    } */
 }
 
 @media (max-width: 400px) {

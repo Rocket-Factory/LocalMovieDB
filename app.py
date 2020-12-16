@@ -96,10 +96,10 @@ def get_movies():
     return jsonify(result)
 
 
-@app.route('/api/tags')
+@app.route('/api/tags/top')
 def get_tags():
     page = 1
-    limit = 100
+    limit = 15
     args = request.args.to_dict()
     if 'page' in args:
         page = int(args['page'])
@@ -109,10 +109,9 @@ def get_tags():
         args.pop('limit')
 
     session = DBSession()
-    tags = session.query(Tag).order_by(Tag.text).slice((page - 1) * limit, page * limit).all()
-    result = [tag.to_json() for tag in tags]
+    tags = session.query(Tag.text, func.count(Tag.text)).join(MovieTag, Tag.id==MovieTag.tag_id).group_by(Tag.text).order_by(func.count(Tag.text).desc()).slice((page - 1) * limit, page * limit).all()
 
-    return jsonify(result)
+    return jsonify(tags)
 
 
 if __name__ == '__main__':
