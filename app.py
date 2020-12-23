@@ -1,31 +1,72 @@
 from flask import Flask, render_template, request, jsonify
+from flask_jwt import JWT, jwt_required, current_identity
+from werkzeug.security import safe_str_cmp
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import func
 from database import Movie, Tag, MovieTag, DBSession
 from sqlalchemy import text
-from config import PAGE_TITLE, PRE_URI, BROWSER_LINK, AFTER_URI, URL, PLAY_URI
+from datetime import timedelta
+from config import PAGE_TITLE, PRE_URI, BROWSER_LINK, PLAY_URI, USERS
 import logging
+import requests
+import json
 
 app = Flask(__name__, static_url_path='',
             static_folder='static')
 
 logging.basicConfig(level=logging.DEBUG)
 
+
+# JWT
+class User(object):
+    def __init__(self, id, username, password):
+        self.id = id
+        self.username = username
+        self.password = password
+
+    def __str__(self):
+        return "User(id='%s')" % self.id
+
+
+users = [User(*user) for user in USERS]
+# users = [User(1,'ikun','iikkun'),]
+username_table = {u.username: u for u in users}
+userid_table = {u.id: u for u in users}
+
+
+def authenticate(username, password):
+    user = username_table.get(username, None)
+    if user and safe_str_cmp(user.password.encode('utf-8'), password.encode('utf-8')):
+        return user
+
+
+def identity(payload):
+    user_id = payload['identity']
+    return userid_table.get(user_id, None)
+
+
+app.config['SECRET_KEY'] = 'super-secret'
+app.config['JWT_AUTH_URL_RULE'] = '/api/auth'
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=3000000)
+jwt = JWT(app, authenticate, identity)
+
+
 @app.route('/')
 def index():
-    return render_template('index.html', title=PAGE_TITLE, pre_uri=PRE_URI, browser_link=BROWSER_LINK,
-                           after_uri=AFTER_URI)
+    return render_template('index.html')
 
 
 @app.route('/movie/dbid/<int:dbid>')
 def get_movie(dbid):
     session = DBSession()
-    movie = session.query(Movie).filter(Movie.douban_url== 'https://m.douban.com/movie/subject/{}/'.format(dbid)).one()
+    movie = session.query(Movie).filter(
+        Movie.douban_url == 'https://m.douban.com/movie/subject/{}/'.format(dbid)).one()
     mid = movie.id
-    return render_template('movie.html',mid=mid, url=URL, play_uri = PLAY_URI, dbid=dbid)
+    return render_template('movie.html', mid=mid, url=URL, play_uri=PLAY_URI, dbid=dbid)
 
 
 @app.route('/api/movies/random')
+@jwt_required()
 def get_random_movie():
     session = DBSession()
     movie = session.query(Movie).order_by(func.random()).limit(1)[1]
@@ -33,14 +74,23 @@ def get_random_movie():
 
 
 @app.route('/api/movie/<int:mid>')
+@jwt_required()
 def get_movie_api(mid):
     session = DBSession()
     query = session.query(Movie)
     movie = query.get(mid)
-    return jsonify(movie.to_json())
+    dbid = movie.douban_url.split('/')[-2]
+    r = requests.get('https://www.douban.com/doubanapp/h5/movie/{}/desc'.format(dbid), headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Ailurus/68.0'})
+    r.encoding = 'utf-8'
+    movie_json = movie.to_json()
+    movie_json['desc_html'] = r.text
+    movie_json['play_links'] = [PLAY_URI + video_file for video_file in movie_json['viedo_files'].split(',')]
+    return jsonify(movie_json)
 
 
 @app.route('/api/movies')
+@jwt_required()
 def get_movies():
     page = 1
     limit = 10
@@ -62,8 +112,15 @@ def get_movies():
         args.pop('tags')
     session = DBSession()
     query = session.query(Movie)
+
     if 'q' in args:
         query = query.filter(Movie.title.like('%{}%'.format(args['q'])))
+
+    if 'type' in args and args['type'] != '':
+        print(args['type'])
+        query = query.filter(Movie.type == args['type'])
+        args.pop('type')
+
     if len(tags) > 0:
         alaised_movie_tag = dict()
         alaised_tag = dict()
@@ -97,6 +154,7 @@ def get_movies():
 
 
 @app.route('/api/tags/top')
+@jwt_required()
 def get_tags():
     page = 1
     limit = 15
@@ -109,7 +167,8 @@ def get_tags():
         args.pop('limit')
 
     session = DBSession()
-    tags = session.query(Tag.text, func.count(Tag.text)).join(MovieTag, Tag.id==MovieTag.tag_id).group_by(Tag.text).order_by(func.count(Tag.text).desc()).slice((page - 1) * limit, page * limit).all()
+    tags = session.query(Tag.text, func.count(Tag.text)).join(MovieTag, Tag.id == MovieTag.tag_id).group_by(
+        Tag.text).order_by(func.count(Tag.text).desc()).slice((page - 1) * limit, page * limit).all()
 
     return jsonify(tags)
 

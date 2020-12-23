@@ -9,6 +9,16 @@ realpath = os.path.split(os.path.realpath(__file__))[0]
 
 logging.basicConfig(level=logging.INFO)
 
+def remove_movies():
+    session = DBSession()
+    movies = session.query(Movie).all()
+    for movie in movies:
+        dirpath = os.path.join(ROOT_DIR,movie.uri[1:])
+        if not os.path.exists(dirpath) or os.listdir(dirpath) == []:
+            session.query(Movie).filter(Movie.id==movie.id).delete()
+            session.query(MovieTag).filter(MovieTag.movie_id==movie.id).delete()
+    session.commit()
+    session.close()
 
 #遍历路径搜索视频文件 
 def search_video_files(path, files):
@@ -34,7 +44,7 @@ def search_movie(path, movies):
             video_files = [video_file[len(ROOT_DIR):] for video_file in video_files]
             video_files_str = ','.join(video_files)
             logging.debug('找到视频文件: {}'.format(video_files_str))
-            if (re_result.group(1), re_result.group(2), os.path.join(path, file), video_files_str) not in movies:
+            if video_files_str!='' and (re_result.group(1), re_result.group(2), os.path.join(path, file), video_files_str) not in movies:
                 movies.append((re_result.group(1), re_result.group(2), os.path.join(path, file), video_files_str))
         search_movie(os.path.join(path, file), movies)
 
@@ -56,7 +66,7 @@ def update_or_insert(info):
     if target_movie:
         target_movie.uri = info['basic']['uri']
         target_movie.update_date = info['basic']['update_date']
-        target_movie.viedo_files = info['basic']['video_files']
+        target_movie.viedo_files = info['basic']['viedo_files']
 
 
     else:
@@ -79,6 +89,7 @@ def update_or_insert(info):
 
 def run():
     movies = []
+    remove_movies()
     search_movie(ROOT_DIR, movies)
     for index, movie in enumerate(movies):
         if movie_exists(movie):
@@ -88,7 +99,7 @@ def run():
         if not db_info:
             continue
         db_info['basic']['uri'] =  movie[2][len(ROOT_DIR):]
-        db_info['basic']['video_files'] =  movie[3]
+        db_info['basic']['viedo_files'] =  movie[3]
         db_info['basic']['title'] = movie[0]
         update_or_insert(db_info)
         time.sleep(1)
