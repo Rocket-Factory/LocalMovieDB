@@ -7,8 +7,9 @@ from douban import get_movie
 import logging
 realpath = os.path.split(os.path.realpath(__file__))[0]
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
+# 从数据库删除路径不存在的电影
 def remove_movies():
     session = DBSession()
     movies = session.query(Movie).all()
@@ -49,6 +50,7 @@ def search_movie(path, movies):
         search_movie(os.path.join(path, file), movies)
 
 
+# 数据库中是否存在
 def movie_exists(movie):
     session = DBSession()
     target_movie = session.query(Movie).filter_by(
@@ -58,7 +60,7 @@ def movie_exists(movie):
         return True
     return False
 
-
+# 更新电影信息或插入到数据库
 def update_or_insert(info):
     session = DBSession()
     target_movie = session.query(Movie).filter_by(**{'title': info['basic']['title'], 'year': info['basic']['year']}) \
@@ -87,6 +89,7 @@ def update_or_insert(info):
     session.close()
 
 
+# 脚本入口
 def run():
     movies = []
     remove_movies()
@@ -101,6 +104,7 @@ def run():
         db_info['basic']['uri'] =  movie[2][len(ROOT_DIR):]
         db_info['basic']['viedo_files'] =  movie[3]
         db_info['basic']['title'] = movie[0]
+        db_info['basic']['tg_post'] = ''
         update_or_insert(db_info)
         time.sleep(1)
 

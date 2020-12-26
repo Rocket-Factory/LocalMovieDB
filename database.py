@@ -30,10 +30,13 @@ class Movie(Base):
     thumbnail_url = Column(TEXT)  # 缩略图
     douban_rating = Column(TEXT)  # 豆瓣评分
     intro = Column(TEXT) #简介
-    viedo_files =  Column(TEXT)
+    viedo_files =  Column(TEXT) # 视频文件
+    tg_post = Column(TEXT) # Telegram 消息链接
+    desc_html = Column(TEXT) # 描述嵌入页面
+
 
     def __init__(self, title, _type, original_title, year, update_date, uri, douban_url, thumbnail_url,
-                 douban_rating, intro, viedo_files):
+                 douban_rating, intro, viedo_files, tg_post, desc_html):
         self.title = title
         self.type = _type
         self.original_title = original_title

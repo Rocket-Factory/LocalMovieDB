@@ -6,7 +6,7 @@ from sqlalchemy.sql.expression import func
 from database import Movie, Tag, MovieTag, DBSession
 from sqlalchemy import text
 from datetime import timedelta
-from config import PAGE_TITLE, PRE_URI, BROWSER_LINK, PLAY_URI, USERS
+from config import PLAY_URI, USERS, SECRET_KEY, COMMENTS_ON
 import logging
 import requests
 import json
@@ -29,7 +29,6 @@ class User(object):
 
 
 users = [User(*user) for user in USERS]
-# users = [User(1,'ikun','iikkun'),]
 username_table = {u.username: u for u in users}
 userid_table = {u.id: u for u in users}
 
@@ -45,7 +44,7 @@ def identity(payload):
     return userid_table.get(user_id, None)
 
 
-app.config['SECRET_KEY'] = 'super-secret'
+app.config['SECRET_KEY'] = SECRET_KEY
 app.config['JWT_AUTH_URL_RULE'] = '/api/auth'
 app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=3000000)
 jwt = JWT(app, authenticate, identity)
@@ -56,21 +55,25 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/movie/dbid/<int:dbid>')
-def get_movie(dbid):
-    session = DBSession()
-    movie = session.query(Movie).filter(
-        Movie.douban_url == 'https://m.douban.com/movie/subject/{}/'.format(dbid)).one()
-    mid = movie.id
-    return render_template('movie.html', mid=mid, url=URL, play_uri=PLAY_URI, dbid=dbid)
-
-
 @app.route('/api/movies/random')
 @jwt_required()
 def get_random_movie():
     session = DBSession()
     movie = session.query(Movie).order_by(func.random()).limit(1)[1]
     return jsonify(movie.to_json())
+
+@app.route('/api/movie/<int:mid>/comments', methods=['POST'])
+@jwt_required()
+def add_comments(mid):
+    params = request.json
+    if 'tg_post' in params:
+        session = DBSession()
+        movie = session.query(Movie).get(mid)
+        movie.tg_post = params['tg_post']
+        session.commit()
+        session.close()
+        return jsonify({'code':200, 'msg': 'success'}),200
+    return jsonify({'code':400, 'msg': 'wrong request'}), 400
 
 
 @app.route('/api/movie/<int:mid>')
@@ -80,12 +83,14 @@ def get_movie_api(mid):
     query = session.query(Movie)
     movie = query.get(mid)
     dbid = movie.douban_url.split('/')[-2]
-    r = requests.get('https://www.douban.com/doubanapp/h5/movie/{}/desc'.format(dbid), headers={
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Ailurus/68.0'})
-    r.encoding = 'utf-8'
+    
     movie_json = movie.to_json()
-    movie_json['desc_html'] = r.text
-    movie_json['play_links'] = [PLAY_URI + video_file for video_file in movie_json['viedo_files'].split(',')]
+    movie_json['play_links'] = [
+        PLAY_URI + video_file for video_file in movie_json['viedo_files'].split(',')]
+
+    if COMMENTS_ON:
+        movie_json['comments_on'] = True
+
     return jsonify(movie_json)
 
 

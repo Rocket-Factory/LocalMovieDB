@@ -8,6 +8,14 @@ import logging
 
 
 @retry(stop_max_attempt_number=3, wait_fixed=1000)
+def get_desc_html(subject_id):
+    r = requests.get('https://www.douban.com/doubanapp/h5/movie/{}/desc'.format(subject_id), headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Ailurus/68.0'})
+    r.encoding = 'utf-8'
+    return r.text
+
+
+@retry(stop_max_attempt_number=3, wait_fixed=1000)
 def get_db_id(name, year):
     true_name = name
     # 处理特殊符号
@@ -19,6 +27,7 @@ def get_db_id(name, year):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Ailurus/68.0'}
     url = 'https://alagorn.8610000.xyz/api/v1/movies/suggest_query?q={}'.format(name)
     r = requests.get(url, headers=headers)
+    logging.debug(r.text)
     if 'code' in r.json():
         return None
     for movie_info in r.json():
@@ -34,7 +43,9 @@ def get_db_info(subject_id):
     url = 'https://alagorn.8610000.xyz/api/v1/movie/{}'.format(subject_id)
     r = requests.get(url, headers=headers)
     r.encoding = 'utf-8'
+    logging.debug(r.text)
     info_json = json.loads(r.text)
+    desc_html = get_desc_html(subject_id)
     result = {'basic': {
         'title': info_json['title'],
         '_type': '剧集' if info_json['is_tv'] else '电影',
@@ -44,7 +55,9 @@ def get_db_info(subject_id):
         'update_date': datetime.now(),
         'douban_url': 'https://m.douban.com/movie/subject/{}/'.format(subject_id),
         'thumbnail_url': info_json['pic']['large'],
-        'douban_rating': info_json['rating']['value'] if info_json['rating'] else -1},
+        'douban_rating': info_json['rating']['value'] if info_json['rating'] else -1,
+        'desc_html': desc_html
+        },
         'tags': [tag['name'] for tag in info_json['tags']]
     }
     return result
@@ -54,7 +67,6 @@ def get_movie(name, year):
     try:
         db_id = get_db_id(name, year)
     except Exception as e:
-#        assert(e)
         db_id= None
     if not db_id:
         logging.error('获取豆瓣Subject ID出错\n')
