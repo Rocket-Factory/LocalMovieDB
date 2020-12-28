@@ -10,7 +10,7 @@ import logging
 @retry(stop_max_attempt_number=3, wait_fixed=1000)
 def get_desc_html(subject_id):
     r = requests.get('https://www.douban.com/doubanapp/h5/movie/{}/desc'.format(subject_id), headers={
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Ailurus/68.0'})
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101'})
     r.encoding = 'utf-8'
     return r.text
 
@@ -27,7 +27,6 @@ def get_db_id(name, year):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Ailurus/68.0'}
     url = 'https://alagorn.8610000.xyz/api/v1/movies/suggest_query?q={}'.format(name)
     r = requests.get(url, headers=headers)
-    logging.debug(r.text)
     if 'code' in r.json():
         return None
     for movie_info in r.json():
@@ -43,7 +42,6 @@ def get_db_info(subject_id):
     url = 'https://alagorn.8610000.xyz/api/v1/movie/{}'.format(subject_id)
     r = requests.get(url, headers=headers)
     r.encoding = 'utf-8'
-    logging.debug(r.text)
     info_json = json.loads(r.text)
     desc_html = get_desc_html(subject_id)
     result = {'basic': {

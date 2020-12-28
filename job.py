@@ -4,10 +4,11 @@ import time
 from database import DBSession, Movie, Tag, MovieTag
 from config import MOVIE_DIR_RE, ROOT_DIR
 from douban import get_movie
+from push import run as push_run
 import logging
 realpath = os.path.split(os.path.realpath(__file__))[0]
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 # 从数据库删除路径不存在的电影
 def remove_movies():
@@ -70,10 +71,12 @@ def update_or_insert(info):
         target_movie.update_date = info['basic']['update_date']
         target_movie.viedo_files = info['basic']['viedo_files']
 
-
     else:
         new_movie = Movie(**info['basic'])
         session.add(new_movie)
+        # 推送新电影信息
+        session.flush()
+        push_run(info,new_movie.id)
 
         for tag in info['tags']:
             if session.query(Tag).filter(Tag.text == tag).count() > 0:
@@ -84,6 +87,7 @@ def update_or_insert(info):
                 session.flush()
             new_movie_tag = MovieTag(new_movie.id, tar_tag.id)
             session.add(new_movie_tag)
+
 
     session.commit()
     session.close()

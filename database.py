@@ -48,6 +48,7 @@ class Movie(Base):
         self.douban_rating = douban_rating
         self.intro = intro
         self.viedo_files = viedo_files
+        self.desc_html = desc_html
 
     def __repr__(self):
         full_title = '{} {} （{}）'.format(self.title, self.type, self.original_title,
@@ -56,10 +57,10 @@ class Movie(Base):
 
         return 'Movie:{}'.format(full_title)
 
-    def fullname(self):
-        return '{} {} （{}）'.format(self.title, self.type, self.original_title,
-                                   self.year) if self.title != self.original_title \
-            else '{} （{}）'.format(self.title, self.year)
+    # def fullname(self):
+    #     return '{} {} （{}）'.format(self.title, self.type, self.original_title,
+    #                                self.year) if self.title != self.original_title \
+    #         else '{} （{}）'.format(self.title, self.year)
 
     def to_json(self):
         if hasattr(self, '__table__'):
