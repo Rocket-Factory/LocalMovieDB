@@ -9,10 +9,10 @@
 - Web页面展示电影列表和播放页面（调用PC、移动端视频软件）
 - 标题搜索、排序、Tag筛选
 
-![PC0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/master/preview/PC0.png)
-![MB0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/master/preview/PC1.png)
-![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/master/preview/MB0.png)
-![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/master/preview/MB1.png)
+![PC0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC0.png)
+![MB0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC1.png)
+![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/MB0.png)
+![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/MB1.png)
 
 
 ## 使用
