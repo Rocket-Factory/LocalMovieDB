@@ -11,8 +11,8 @@
 
 ![PC0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC0.png)
 ![MB0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC1.png)
-![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/MB0.png)
-![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/MB1.png)
+![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/mb0.png)
+![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/mb1.png)
 
 
 ## 使用
