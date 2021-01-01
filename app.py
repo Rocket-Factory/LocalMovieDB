@@ -84,7 +84,7 @@ def get_movie_api(mid):
     movie = query.get(mid)
     movie_json = movie.to_json()
     movie_json['play_links'] = [
-        PLAY_URI + video_file for video_file in movie_json['viedo_files'].split(',')]
+        PLAY_URI + '/' + video_file for video_file in movie_json['viedo_files'].split(',/')]
     if COMMENTS_ON:
         movie_json['comments_on'] = True
     return jsonify(movie_json)

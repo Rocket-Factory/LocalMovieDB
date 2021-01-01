@@ -14,7 +14,7 @@ def telegram(info_dict, mid):
                 info_dict['basic']['douban_url'], info_dict['basic']['douban_rating'], URL, mid,)
 
     url = 'https://api.telegram.org/bot{}/sendMessage'.format(TG_BOT_TOKEN)
-    data = {'chat_id': TG_CHAT_ID, 'text': md_text, 'parse_mode': 'markdown'}
+    data = {'chat_id': TG_CHAT_ID, 'text': md_text, 'parse_mode': 'markdown','disable_notification': True}
     headers = {'Content-Type': 'application/json',
                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
     try:
