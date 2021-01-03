@@ -9,7 +9,7 @@ import json
 # Telegram
 @retry(stop_max_attempt_number=3, wait_fixed=1000)
 def telegram(info_dict, mid):
-    md_text = '*{} {} （{}）*\n\n“{}” [@豆瓣]({})\n\n评分: {}\n播放页面：{}/movie/{}' \
+    md_text = '*{} {} （{}）*\n\n“{}” [@豆瓣]({})\n\n评分: {}\n播放页面：{}/#movie/{}' \
         .format(info_dict['basic']['title'], info_dict['basic']['original_title'], info_dict['basic']['year'], info_dict['basic']['intro'],
                 info_dict['basic']['douban_url'], info_dict['basic']['douban_rating'], URL, mid,)
 
@@ -41,7 +41,7 @@ def bark(info_dict, mid):
     title = '{}：[{}]{}（{}）'.format(
         pre_title, info_dict['basic']['_type'], info_dict['basic']['title'], info_dict['basic']['year'])
     for token in BARK_TOKENS:
-        url = 'https://api.day.app/{}/{} {} ({}) {}分/点击查看?url={}/movie/{}'.format(
+        url = 'https://api.day.app/{}/{} {} ({}) {}分/点击查看?url={}/#movie/{}'.format(
             token, title, info_dict['basic']['original_title'], info_dict['basic']['year'], info_dict['basic']['douban_rating'],URL,mid)
 
         r = requests.get(url, headers=headers)
