@@ -6,9 +6,12 @@ from config import MOVIE_DIR_RE, ROOT_DIR
 from douban import get_movie
 from push import run as push_run
 import logging
+import requests
+
 realpath = os.path.split(os.path.realpath(__file__))[0]
 
 logging.basicConfig(level=logging.INFO)
+
 
 # 从数据库删除路径不存在的电影
 def remove_movies():
@@ -22,6 +25,7 @@ def remove_movies():
     session.commit()
     session.close()
 
+
 #遍历路径搜索视频文件 
 def search_video_files(path, files):
     for file in os.listdir(path):
@@ -29,8 +33,7 @@ def search_video_files(path, files):
             if file.split('.')[-1] in ['mp4', 'mkv', 'ts']:
                 files.append(os.path.join(path, file))
             continue
-        search_video_files(os.path.join(path, file),files)
-        
+        search_video_files(os.path.join(path, file),files)    
         
 
 # 遍历路径搜索电影
@@ -60,6 +63,7 @@ def movie_exists(movie):
     if target_movie:
         return True
     return False
+
 
 # 更新电影信息或插入到数据库
 def update_or_insert(info):
@@ -93,8 +97,18 @@ def update_or_insert(info):
     session.close()
 
 
+# 获取API简要电影信息(标题、年份、ID等)
+def get_q_movie_json():
+    url = 'https://douban.8610000.xyz/q.json'
+    r = requests.get(url)
+    return r.json()
+
+
 # 脚本入口
 def run():
+    logging.info('获取API电影数据信息')
+    q_movies = get_q_movie_json()
+    logging.info('已获取，共{}条电影数据'.format(len(q_movies)))
     movies = []
     remove_movies()
     search_movie(ROOT_DIR, movies)
@@ -102,7 +116,7 @@ def run():
         if movie_exists(movie):
             continue
         logging.info('[{}/{}]获取电影: {}'.format(index,len(movies),movie[2]))
-        db_info = get_movie(movie[0], movie[1] )
+        db_info = get_movie(q_movies, movie[0], movie[1])
         if not db_info:
             continue
         db_info['basic']['uri'] =  movie[2][len(ROOT_DIR):]

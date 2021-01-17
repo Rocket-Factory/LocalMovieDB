@@ -16,30 +16,10 @@ def get_desc_html(subject_id):
 
 
 @retry(stop_max_attempt_number=3, wait_fixed=1000)
-def get_db_id(name, year):
-    true_name = name
-    # 处理特殊符号
-    for index,s in enumerate(name):
-        if s in [',', ':','(','[', ' ']:
-            name = name[:index]
-            break
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Ailurus/68.0'}
-    url = 'https://alagorn.8610000.xyz/api/v1/movies/suggest_query?q={}'.format(name)
-    r = requests.get(url, headers=headers)
-    if 'code' in r.json():
-        return None
-    for movie_info in r.json():
-        if (movie_info['title'] == true_name or ''.join(movie_info['title'].split()) == ''.join(true_name.split())) and movie_info['year'] == year:
-            return movie_info['id']
-    return None
-
-
-@retry(stop_max_attempt_number=3, wait_fixed=1000)
 def get_db_info(subject_id):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Ailurus/68.0'}
-    url = 'https://alagorn.8610000.xyz/api/v1/movie/{}'.format(subject_id)
+    url = 'https://douban.8610000.xyz/data/{}.json'.format(subject_id)
     r = requests.get(url, headers=headers)
     r.encoding = 'utf-8'
     info_json = json.loads(r.text)
@@ -61,13 +41,15 @@ def get_db_info(subject_id):
     return result
 
 
-def get_movie(name, year):
-    try:
-        db_id = get_db_id(name, year)
-    except Exception as e:
-        db_id= None
+def get_movie(q_movies,name, year):
+    db_id = None
+    true_name = name
+    for movie in q_movies:
+        if (movie['title'] == name or ''.join(movie['title'].split()) == ''.join(name.split())) and movie['year'] == year:
+            db_id = movie['id']
+            break
     if not db_id:
-        logging.error('获取豆瓣Subject ID出错\n')
+        logging.error('获取豆瓣Subject ID出错，数据库可能尚未收录\n')
         return None
     try:
         db_info = get_db_info(db_id)
