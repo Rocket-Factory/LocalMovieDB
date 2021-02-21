@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 from retrying import retry
 from config import TG_ON, TG_CHAT_ID, TG_BOT_TOKEN, BARK_ON, BARK_TOKENS, SERVER_CYANN_ON, SERVER_CYANN_TOKEN, PROXY, PROXY_URL, URL
+from urllib.parse import quote
 import logging
 import json
 
@@ -63,7 +64,7 @@ def server_cyann(info_dict, mid):
         pre_title, info_dict['basic']['_type'], info_dict['basic']['title'], info_dict['basic']['year'])
     content = '{}/#/movie/{}'.format(URL, mid)
     url = 'https://sctapi.ftqq.com/{}.send?title={}&desp={}'.format(
-        SERVER_CYANN_TOKEN, title, content)
+        SERVER_CYANN_TOKEN, title, quote(content, safe=''))
     headers = {'Content-Type': 'application/json',
                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
     r = requests.get(url, headers=headers)
