@@ -1,18 +1,17 @@
 # LocalMovieDB
-基于豆瓣信息的（简易）本地电影数据库（Web），用于NAS电影检索。(<del>由于原来流传豆瓣API key权限没收,可能无法使用</del>)。
-新的分支已解决该问题，并提供了API（详见`douban.py`）
+基于豆瓣信息的（简易）本地电影数据库（Web），用于NAS电影检索。
 
 
 ## 功能
-- 获取本地电影豆瓣信息（可定时运行）
-- 推送新电影消息至Telegram和Bark
-- Web页面展示电影列表和播放页面（调用PC、移动端视频软件）
+- 抓取本地电影豆瓣信息（可设置定时运行）
+- 推送新电影消息至Telegram、Bark、Server酱
+- Web页面展示电影列表和播放页面（调用PC、移动端视频APP）
 - 标题搜索、排序、Tag筛选
 
-![PC0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC0.png)
-![MB0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC1.png)
-![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/mb0.png)
-![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/mb1.png)
+![PC0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC0.jpg)
+![MB0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC1.jpg)
+![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/mb0.jpg)
+![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/mb1.jpg)
 
 
 ## 使用
@@ -24,10 +23,15 @@
 ## 注意
 1. 电影路径格式要求：默认（可自行设置正则）为`豆瓣电影名（年份）`，路径内需存在视频文件。
 2. 评论功能需要手动输入消息链接，需要科学上网查看。
-3. 豆瓣API会去获取新的电影和剧集，如不存在可能会导致数据库收录和推送失败，建议先打开`https://douban.8610000.xyz/data/<豆瓣Subject ID>.json`查看是否存在（<del>不存在会自动加入服务器队列，半个小时后再查看应该就有了</del>）。
-4. <del>服务器资源十分有限，仅方便个人整理和分享，请勿滥用。</del>已通过存放在Github解决。
+3. 豆瓣API会去获取新的电影和剧集，如不存在可能会导致数据库收录和推送失败，详见`https://douban.8610000.xyz/`。
 
 ## 更新
+### 2021-02-21
+1. UI更新（主要是详情页）
+2. 修复滚动加载的Bug
+3. 新增自带fileserver（仅X86）
+4. 新增Server酱推送
+5. 数据库结构变化，需要删除db文件重新获取
 
 ### 2021-01-17
 1. 切换API到Github Pages，避免服务器流量问题
