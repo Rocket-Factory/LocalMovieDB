@@ -1,7 +1,7 @@
 import re
 import os
 import time
-from database import DBSession, Movie, Tag, MovieTag
+from database import DBSession, Movie, Tag, MovieTag, MovieDirector, MovieActor, Role
 from config import MOVIE_DIR_RE, ROOT_DIR
 from douban import get_movie
 from push import run as push_run
@@ -82,6 +82,7 @@ def update_or_insert(info):
         session.flush()
         push_run(info,new_movie.id)
 
+        # 更新Tag
         for tag in info['tags']:
             if session.query(Tag).filter(Tag.text == tag).count() > 0:
                 tar_tag = session.query(Tag).filter(Tag.text == tag).first()
@@ -91,6 +92,28 @@ def update_or_insert(info):
                 session.flush()
             new_movie_tag = MovieTag(new_movie.id, tar_tag.id)
             session.add(new_movie_tag)
+        
+        # 更新导演信息
+        for director in info['directors']:
+            if session.query(Role).filter(Role.name == director['name']).count() > 0:
+                tar_role = session.query(Role).filter(Role.name == director['name']).first()
+            else:
+                tar_role = Role(director['name'],director['info'])
+                session.add(tar_role)
+                session.flush()
+            new_movie_director = MovieDirector(new_movie.id, tar_role.id)
+            session.add(new_movie_director)
+
+        # 更新演员信息
+        for actor in info['actors']:
+            if session.query(Role).filter(Role.name == actor['name']).count() > 0:
+                tar_role = session.query(Role).filter(Role.name == actor['name']).first()
+            else:
+                tar_role = Role(actor['name'],actor['info'])
+                session.add(tar_role)
+                session.flush()
+            new_movie_director = MovieActor(new_movie.id, tar_role.id)
+            session.add(new_movie_director)
 
 
     session.commit()
@@ -106,7 +129,7 @@ def get_q_movie_json():
 
 # 脚本入口
 def run():
-    logging.info('获取API电影数据信息')
+    logging.info('获取API电影数据...')
     q_movies = get_q_movie_json()
     logging.info('已获取，共{}条电影数据'.format(len(q_movies)))
     movies = []
@@ -122,7 +145,6 @@ def run():
         db_info['basic']['uri'] =  movie[2][len(ROOT_DIR):]
         db_info['basic']['viedo_files'] =  movie[3]
         db_info['basic']['title'] = movie[0]
-        db_info['basic']['tg_post'] = ''
         update_or_insert(db_info)
         time.sleep(1)
 

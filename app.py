@@ -3,13 +3,15 @@ from flask_jwt import JWT, jwt_required, current_identity
 from werkzeug.security import safe_str_cmp
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import func
-from database import Movie, Tag, MovieTag, DBSession
+from database import Movie, Tag, MovieTag, MovieActor, MovieDirector, Role, DBSession
 from sqlalchemy import text
 from datetime import timedelta
-from config import PLAY_URI, USERS, SECRET_KEY, COMMENTS_ON
+from config import PLAY_URI, USERS, SECRET_KEY, ROOT_DIR, FILE_SERVER
 import logging
 import requests
 import json
+import subprocess
+import bcrypt
 
 app = Flask(__name__, static_url_path='',
             static_folder='static')
@@ -62,19 +64,6 @@ def get_random_movie():
     movie = session.query(Movie).order_by(func.random()).limit(1)[1]
     return jsonify(movie.to_json())
 
-@app.route('/api/movie/<int:mid>/comments', methods=['POST'])
-@jwt_required()
-def add_comments(mid):
-    params = request.json
-    if 'tg_post' in params:
-        session = DBSession()
-        movie = session.query(Movie).get(mid)
-        movie.tg_post = params['tg_post']
-        session.commit()
-        session.close()
-        return jsonify({'code':200, 'msg': 'success'}),200
-    return jsonify({'code':400, 'msg': 'wrong request'}), 400
-
 
 @app.route('/api/movie/<int:mid>')
 @jwt_required()
@@ -83,10 +72,18 @@ def get_movie_api(mid):
     query = session.query(Movie)
     movie = query.get(mid)
     movie_json = movie.to_json()
+
+    tags = session.query(Tag).join(MovieTag, MovieTag.tag_id==Tag.id).filter(MovieTag.movie_id==mid)
+    movie_json['tags'] = [tag.to_json() for tag in tags]
+    
+    actors = session.query(Role).join(MovieActor, MovieActor.actor_id==Role.id).filter(MovieActor.movie_id==mid)
+    movie_json['actors_json'] = [json.loads(actor.info) for actor in actors]
+
+    directors = session.query(Role).join(MovieDirector, MovieDirector.director_id==Role.id).filter(MovieDirector.movie_id==mid)
+    movie_json['directors_json'] = [json.loads(director.info) for director in directors]
+
     movie_json['play_links'] = [
         PLAY_URI + '/' + video_file for video_file in movie_json['viedo_files'].split(',/')]
-    if COMMENTS_ON:
-        movie_json['comments_on'] = True
     return jsonify(movie_json)
 
 
@@ -154,6 +151,21 @@ def get_movies():
     return jsonify(result)
 
 
+@app.route('/api/role/<int:rid>')
+@jwt_required()
+def get_role_info(rid):
+    session = DBSession()
+    role = session.query(Role).get(rid)
+    role_json = json.loads(role.info)
+    actor_movies = session.query(Movie).join(MovieActor,Movie.id==MovieActor.movie_id).filter(MovieActor.actor_id==rid)
+    movies_json = [movie.to_json() for movie in actor_movies]
+    director_movies = session.query(Movie).join(MovieDirector,Movie.id==MovieDirector.movie_id).filter(MovieDirector.director_id==rid)
+    for movie in director_movies:
+        movies_json.append(movie.to_json())
+    role_json['related_movies'] = movies_json
+    return jsonify(role_json)
+
+
 @app.route('/api/tags/top')
 @jwt_required()
 def get_tags():
@@ -174,5 +186,15 @@ def get_tags():
     return jsonify(tags)
 
 
+def bcrypt_passwd(passwd_str):
+    passwd = bytes(passwd_str, encoding="utf8")
+    salt = bcrypt.gensalt()
+    passwd_crypt = str(bcrypt.hashpw(passwd, salt), encoding='utf-8')
+    return passwd_crypt.replace('$', '\\$')
+
+
 if __name__ == '__main__':
+    if FILE_SERVER:
+        process = subprocess.Popen(["./fileserver {} 5012 {} {}".format(ROOT_DIR, USERS[0][1],bcrypt_passwd(USERS[0][2]))], shell=True)
     app.run(host='0.0.0.0', port=5001)
+    process.wait()

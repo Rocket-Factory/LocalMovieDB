@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime
 from retrying import retry
-from config import TG_ON, TG_CHAT_ID, TG_BOT_TOKEN, BARK_TOKENS, BARK_ON, BARK_TOKENS, PROXY, PROXY_URL, URL
+from config import TG_ON, TG_CHAT_ID, TG_BOT_TOKEN, BARK_ON, BARK_TOKENS, SERVER_CYANN_ON, SERVER_CYANN_TOKEN, PROXY, PROXY_URL, URL
 import logging
 import json
 
@@ -14,7 +14,8 @@ def telegram(info_dict, mid):
                 info_dict['basic']['douban_url'], info_dict['basic']['douban_rating'], URL, mid,)
 
     url = 'https://api.telegram.org/bot{}/sendMessage'.format(TG_BOT_TOKEN)
-    data = {'chat_id': TG_CHAT_ID, 'text': md_text, 'parse_mode': 'markdown','disable_notification': True}
+    data = {'chat_id': TG_CHAT_ID, 'text': md_text,
+            'parse_mode': 'markdown', 'disable_notification': True}
     headers = {'Content-Type': 'application/json',
                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
     try:
@@ -42,7 +43,7 @@ def bark(info_dict, mid):
         pre_title, info_dict['basic']['_type'], info_dict['basic']['title'], info_dict['basic']['year'])
     for token in BARK_TOKENS:
         url = 'https://api.day.app/{}/{} {} ({}) {}分/点击查看?url={}/#movie/{}'.format(
-            token, title, info_dict['basic']['original_title'], info_dict['basic']['year'], info_dict['basic']['douban_rating'],URL,mid)
+            token, title, info_dict['basic']['original_title'], info_dict['basic']['year'], info_dict['basic']['douban_rating'], URL, mid)
 
         r = requests.get(url, headers=headers)
         if r.json()['code'] == 200:
@@ -52,17 +53,40 @@ def bark(info_dict, mid):
     return success_count, fail_count
 
 
+# Server酱
+def server_cyann(info_dict, mid):
+    if int(info_dict['basic']['year']) >= datetime.now().year - 1:
+        pre_title = '上新'
+    else:
+        pre_title = '上旧'
+    title = '{}：[{}]{}（{}）'.format(
+        pre_title, info_dict['basic']['_type'], info_dict['basic']['title'], info_dict['basic']['year'])
+    content = '{}/#/movie/{}'.format(URL, mid)
+    url = 'https://sctapi.ftqq.com/{}.send?title={}&desp={}'.format(
+        SERVER_CYANN_TOKEN, title, content)
+    headers = {'Content-Type': 'application/json',
+               'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
+    r = requests.get(url, headers=headers)
+    if r.json()['code'] == 0:
+        return True
+    return False
+
+
 # 推送
 def run(info, mid):
     res_result = ''
     # Telegram
     if TG_ON:
         tg_result = telegram(info, mid)
-        res_result += 'Telegram发送成功, ' if tg_result else 'Telegram: 发送失败, '
+        res_result += 'Telegram发送成功, ' if tg_result else 'Telegram发送失败, '
     # Bark
     if BARK_ON:
         bark_success_count, bark_fail_count = bark(info, mid)
         res_result += 'Bark{}成功{}失败, '.format(
             bark_success_count, bark_fail_count)
-    
+    #
+    if SERVER_CYANN_ON:
+        result = server_cyann(info, mid)
+        res_result += 'Server酱发送成功，' if result else 'Server酱发送失败'
+
     logging.info(res_result)
