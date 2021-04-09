@@ -1,6 +1,5 @@
 # coding: utf-8
 import os
-
 from sqlalchemy import Column, INTEGER, TEXT, DATETIME, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base

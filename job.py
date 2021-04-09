@@ -9,7 +9,6 @@ import logging
 import requests
 
 realpath = os.path.split(os.path.realpath(__file__))[0]
-
 logging.basicConfig(level=logging.INFO)
 
 
@@ -133,7 +132,6 @@ def run():
     q_movies = get_q_movie_json()
     logging.info('已获取，共{}条电影数据'.format(len(q_movies)))
     movies = []
-    remove_movies()
     search_movie(ROOT_DIR, movies)
     for index, movie in enumerate(movies):
         if movie_exists(movie):
@@ -147,6 +145,8 @@ def run():
         db_info['basic']['title'] = movie[0]
         update_or_insert(db_info)
         time.sleep(1)
+    # 删除已不存在的电影数据
+    remove_movies()
 
 
 if __name__ =='__main__':

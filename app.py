@@ -6,12 +6,11 @@ from sqlalchemy.sql.expression import func
 from database import Movie, Tag, MovieTag, MovieActor, MovieDirector, Role, DBSession
 from sqlalchemy import text
 from datetime import timedelta
-from config import PLAY_URI, USERS, SECRET_KEY, ROOT_DIR, FILE_SERVER
+from config import PLAY_URI, USERS, SECRET_KEY, ROOT_DIR
 import logging
 import requests
 import json
-import subprocess
-import bcrypt
+
 
 app = Flask(__name__, static_url_path='',
             static_folder='static')
@@ -186,15 +185,8 @@ def get_tags():
     return jsonify(tags)
 
 
-def bcrypt_passwd(passwd_str):
-    passwd = bytes(passwd_str, encoding="utf8")
-    salt = bcrypt.gensalt()
-    passwd_crypt = str(bcrypt.hashpw(passwd, salt), encoding='utf-8')
-    return passwd_crypt.replace('$', '\\$')
 
 
 if __name__ == '__main__':
-    if FILE_SERVER:
-        process = subprocess.Popen(["./fileserver {} 5012 {} {}".format(ROOT_DIR, USERS[0][1],bcrypt_passwd(USERS[0][2]))], shell=True)
     app.run(host='0.0.0.0', port=5001)
     process.wait()

@@ -7,16 +7,11 @@ SECRET_KEY = 'yoursecret' # 秘钥(仅加密token用,可随意设置)
 
 ROOT_DIR = '/mnt/Media/' # 本地检索路径(如/mnt/Media/)
 
-
-# 开启自带的fileserver(仅x86，性能和稳定性不是很好，建议用Caddy或Nginx)
-FILE_SERVER = False
-
 # 播放视频的URI
-PLAY_URI = 'http://{}:{}@192.x.x.xx:5012/share'.format(USERS[0][1], USERS[0][2]) # 播放链接URI(默认为自带文件服务地址，默认端口5012, 可根据情况自行修改)
+PLAY_URI = 'http://{}:{}@192.x.x.xx:xxxx/share'.format(USERS[0][1], USERS[0][2]) # 播放链接URI(可根据情况自行修改)
 
 # 电影文件夹正则表达式, 用于识别
 MOVIE_DIR_RE = '(.*?)（(\d{4})）' # 命名正则(包含（豆瓣中文）标题和年份，默认为电影名、中文括号年份，如：灰猎犬号（2020）)
-
 
 ## 代理(用于Telegram推送、TMDB API)
 PROXY = False
@@ -24,7 +19,6 @@ PROXY_URL = 'http://127.0.0.1:7890'
 
 
 ## 推送
-
 # 启用Telegram推送
 TG_ON = False
 TG_CHAT_ID = 123456 # chat id（群组、频道、或用户）
