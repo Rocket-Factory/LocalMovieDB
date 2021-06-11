@@ -29,7 +29,7 @@ def remove_movies():
 def search_video_files(path, files):
     for file in os.listdir(path):
         if os.path.isfile(os.path.join(path, file)):   
-            if file.split('.')[-1] in ['mp4', 'mkv', 'ts']:
+            if file.split('.')[-1] in ['mp4', 'mkv', 'ts','flv']:
                 files.append(os.path.join(path, file))
             continue
         search_video_files(os.path.join(path, file),files)    
