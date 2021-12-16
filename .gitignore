@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+gi# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -134,3 +134,4 @@ movies.db
 
 .idea
 .vscode/
+node_modules
