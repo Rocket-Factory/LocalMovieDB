@@ -1,18 +1,34 @@
 import requests
 from datetime import datetime
 from retrying import retry
-from config import TG_ON, TG_CHAT_ID, TG_BOT_TOKEN, BARK_ON, BARK_TOKENS, SERVER_CYANN_ON, SERVER_CYANN_TOKEN, PROXY, PROXY_URL, URL
+from database import DBSession, Config
 from urllib.parse import quote
 import logging
 import json
+
+try:
+    session = DBSession()
+    config = session.query(Config).get(1)
+    TG_ON = config.tg_push_on
+    TG_CHAT_ID = config.tg_chatid
+    TG_BOT_TOKEN = config.tg_bot_token
+    BARK_ON = config.bark_push_on
+    BARK_TOKENS = config.bark_tokens.split(',')
+    SERVER_CYANN_ON = config.server_cyann_on
+    SERVER_CYANN_TOKEN = config.server_cyann_token
+    PROXY = config.proxy_on
+    PROXY_URL = config.proxy_url
+    session.close()
+except Exception as e:
+    exit(1)
 
 
 # Telegram
 @retry(stop_max_attempt_number=3, wait_fixed=1000)
 def telegram(info_dict, mid):
-    md_text = '*{} {} （{}）*\n\n“{}” [@豆瓣]({})\n\n评分: {}\n播放页面：{}/#movie/{}' \
+    md_text = '*{} {} （{}）*\n\n“{}” [@豆瓣]({})\n\n评分: {}\n' \
         .format(info_dict['basic']['title'], info_dict['basic']['original_title'], info_dict['basic']['year'], info_dict['basic']['intro'],
-                info_dict['basic']['douban_url'], info_dict['basic']['douban_rating'], URL, mid,)
+                info_dict['basic']['douban_url'], info_dict['basic']['douban_rating'])
 
     url = 'https://api.telegram.org/bot{}/sendMessage'.format(TG_BOT_TOKEN)
     data = {'chat_id': TG_CHAT_ID, 'text': md_text,
@@ -43,8 +59,8 @@ def bark(info_dict, mid):
     title = '{}：[{}]{}（{}）'.format(
         pre_title, info_dict['basic']['_type'], info_dict['basic']['title'], info_dict['basic']['year'])
     for token in BARK_TOKENS:
-        url = 'https://api.day.app/{}/{} {} ({}) {}分/点击查看?url={}/#movie/{}'.format(
-            token, title, info_dict['basic']['original_title'], info_dict['basic']['year'], info_dict['basic']['douban_rating'], URL, mid)
+        url = 'https://api.day.app/{}/{} {} ({}) {}分/点击查看'.format(
+            token, title, info_dict['basic']['original_title'], info_dict['basic']['year'], info_dict['basic']['douban_rating'])
 
         r = requests.get(url, headers=headers)
         if r.json()['code'] == 200:
@@ -62,7 +78,7 @@ def server_cyann(info_dict, mid):
         pre_title = '上旧'
     title = '{}：[{}]{}（{}）'.format(
         pre_title, info_dict['basic']['_type'], info_dict['basic']['title'], info_dict['basic']['year'])
-    content = '{}/#/movie/{}'.format(URL, mid)
+    content = ''
     url = 'https://sctapi.ftqq.com/{}.send?title={}&desp={}'.format(
         SERVER_CYANN_TOKEN, title, quote(content, safe=''))
     headers = {'Content-Type': 'application/json',

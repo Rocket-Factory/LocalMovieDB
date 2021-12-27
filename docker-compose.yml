@@ -1,0 +1,40 @@
+version: "3.7"
+
+services:
+
+  flask:
+    build: ./flask
+    container_name: moviedbflask
+    # restart: always
+    networks:
+      moviedb-net:
+        aliases:
+          - flask-app
+    environment:
+      - SECRET_KEY=ACDEF  # 仅加密用,随意输入
+      - USER=user # 用户
+      - PASSWORD=pass # 密码
+      - MOVIE_DIR_RE=(.*?)（(\d{4})） # 目录匹配正则，如：黑客帝国（1999）
+    volumes:
+      - /mt/wdp/share/电影:/mnt/media # 视频文件所在路径
+    ports:
+      - 5006
+
+
+  nginx:
+    build: ./nginx
+    container_name: moviedbnginx
+    # restart: always
+    networks:
+      - moviedb-net
+    volumes:
+      - /mt/wdp/share:/usr/share/nginx/root # 视频文件所在路径
+    ports:
+      - "5012:80"
+
+    depends_on:
+      - flask
+
+
+networks:
+    moviedb-net:
