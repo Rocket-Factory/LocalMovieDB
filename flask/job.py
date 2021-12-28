@@ -48,7 +48,6 @@ def search_video_files(path, files):
 
 # 遍历路径搜索电影
 def search_movie(path, movies):
-    print(path)
     for file in os.listdir(path):
         if not os.path.isdir(os.path.join(path, file)):
             continue

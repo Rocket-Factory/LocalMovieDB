@@ -14,6 +14,7 @@ import logging
 import requests
 import json
 import os
+import psutil
 
 
 app = Flask(__name__, static_url_path='',
@@ -96,6 +97,8 @@ def get_movie_api(mid):
     movie_json['directors_json'] = [json.loads(director.info) for director in directors]
 
     movie_json['play_links'] = ['/' + video_file for video_file in movie_json['viedo_files'].split(',/')]
+    movie_json['user'] = USER
+    movie_json['password'] = PASSWORD
     return jsonify(movie_json)
 
 
@@ -201,6 +204,9 @@ def get_tags():
 @app.route('/api/job')
 @requires_auth
 def run_job():
+    for p in psutil.process_iter():
+        if len(p.cmdline()) >1 and p.cmdline()[1]== 'job.py':
+            return 'Already started', 200
     os.popen('python3 job.py')
     return 'running',200
 
@@ -210,7 +216,16 @@ def init():
     if session.query(Config).filter().count() == 0:
         user = USER +':'+ PASSWORD
         movie_dir_re = os.environ['MOVIE_DIR_RE']
-        config = Config(user=user,root_dir='/mnt/media',movie_dir_re=movie_dir_re ,tg_push_on=False,tg_chatid='',tg_bot_token='',bark_push_on=False,bark_tokens='',server_cyann_on=False,server_cyann_token='',proxy_on=False,proxy_url='')
+        tg_push_on = True if os.environ['TG_ON']=='true' else False
+        tg_chatid = os.environ['TG_CHATID']
+        tg_bot_token = os.environ['TG_BOT_TOKEN']
+        bark_push_on = True if os.environ['BARK_ON']=='true' else False
+        bark_tokens = os.environ['BARK_TOKENS']
+        server_cyann_on = True if os.environ['SERVER_CYANN']=='true' else False
+        server_cyann_token = os.environ['SERVER_CYANN_TOKEN']
+        proxy_on = True if os.environ['PROXY_ON']=='true' else False
+        proxy_url = os.environ['PROXY_URL']
+        config = Config(user=user,root_dir='/mnt/media',movie_dir_re=movie_dir_re ,tg_push_on=tg_push_on,tg_chatid=tg_chatid,tg_bot_token=tg_bot_token,bark_push_on=bark_push_on,bark_tokens=bark_tokens,server_cyann_on=server_cyann_on,server_cyann_token=server_cyann_token,proxy_on=proxy_on,proxy_url=proxy_url)
         session.add(config)
         session.commit()
         session.close()

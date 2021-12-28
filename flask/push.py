@@ -50,8 +50,6 @@ def telegram(info_dict, mid):
 def bark(info_dict, mid):
     success_count = 0
     fail_count = 0
-    headers = {'Content-Type': 'application/json',
-               'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
     if int(info_dict['basic']['year']) >= datetime.now().year - 1:
         pre_title = '上新'
     else:
@@ -59,14 +57,18 @@ def bark(info_dict, mid):
     title = '{}：[{}]{}（{}）'.format(
         pre_title, info_dict['basic']['_type'], info_dict['basic']['title'], info_dict['basic']['year'])
     for token in BARK_TOKENS:
+        if token=='':
+            continue
         url = 'https://api.day.app/{}/{} {} ({}) {}分/点击查看'.format(
             token, title, info_dict['basic']['original_title'], info_dict['basic']['year'], info_dict['basic']['douban_rating'])
-
-        r = requests.get(url, headers=headers)
-        if r.json()['code'] == 200:
-            success_count += 1
-        else:
-            fail_count += 1
+        try:
+            r = requests.get(url)
+            if r.json()['code'] == 200:
+                success_count += 1
+            else:
+                fail_count += 1
+        except Exception:
+            fail_count += 1 
     return success_count, fail_count
 
 
@@ -81,8 +83,7 @@ def server_cyann(info_dict, mid):
     content = ''
     url = 'https://sctapi.ftqq.com/{}.send?title={}&desp={}'.format(
         SERVER_CYANN_TOKEN, title, quote(content, safe=''))
-    headers = {'Content-Type': 'application/json',
-               'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:74.0) Gecko/20100101 Firefox/74.0'}
     r = requests.get(url, headers=headers)
     if r.json()['code'] == 0:
         return True

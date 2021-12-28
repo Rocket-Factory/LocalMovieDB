@@ -5,18 +5,30 @@ services:
   flask:
     build: ./flask
     container_name: moviedbflask
-    # restart: always
+    restart: always
     networks:
       moviedb-net:
         aliases:
           - flask-app
     environment:
-      - SECRET_KEY=ACDEF  # 仅加密用,随意输入
-      - USER=user # 用户
-      - PASSWORD=pass # 密码
-      - MOVIE_DIR_RE=(.*?)（(\d{4})） # 目录匹配正则，如：黑客帝国（1999）
+      - SECRET_KEY=ACDEF                # 仅加密用,随意输入
+      - USER=user                       # 用户
+      - PASSWORD=pass                   # 密码
+      - MOVIE_DIR_RE=(.*?)（(\d{4})）   # 目录匹配正则，如：黑客帝国（1999）
+      # 以下为推送功能(扫描到新电影时推送)
+      - TG_ON=false                     # Telegram推送
+      - TG_CHATID=12345                 # Chat ID(频道/用户/群租)
+      - TG_BOT_TOKEN=xxxxxxx:xxxxxxx    # Bot Token
+      - BARK_ON=false                   # BARK推送
+      - BARK_TOKENS=xxxx,xxxxx          # BARK推送Token(多个)
+      - SERVER_CYANN=false              # Server酱推送
+      - SERVER_CYANN_TOKEN=xxxxxxx      # Server酱Token
+      - PROXY_ON=false                  # 使用代理(Telegram推送)需将本文件下面"clash"部分取消注释,修改clash.yaml
+      - PROXY_URL=http://clash-app:7890 # 不用修改
+
     volumes:
-      - /mt/wdp/share/电影:/mnt/media # 视频文件所在路径
+      - /mnt/xxx/电影:/mnt/media/电影    # 视频文件路径映射到 /mnt/media/下
+      - /mnt/xxx/动画:/mnt/media/动画    # 同上
     ports:
       - 5006
 
@@ -24,16 +36,31 @@ services:
   nginx:
     build: ./nginx
     container_name: moviedbnginx
-    # restart: always
+    restart: always
     networks:
       - moviedb-net
     volumes:
-      - /mt/wdp/share:/usr/share/nginx/root # 视频文件所在路径
+      - /mnt/xxx/xxx/电影:/usr/share/nginx/root/电影 # 视频文件所在路径
+      - /mnt/xxx/xxx/动画:/usr/share/nginx/root/动画 # 同上
     ports:
-      - "5012:80"
+      - "5012:80" # web映射端口
 
     depends_on:
       - flask
+
+  # clash:
+  #   image: dreamacro/clash
+  #   container_name: clash
+  #   restart: always
+  #   networks:
+  #     moviedb-net:
+  #       aliases:
+  #         - clash-app
+  #   volumes:
+  #     - ./clash.yaml:/root/.config/clash/config.yaml
+  #   ports:
+  #     - "7890:7890"
+  #     - "7891:7891"
 
 
 networks:
