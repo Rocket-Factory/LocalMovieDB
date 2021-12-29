@@ -67,7 +67,8 @@ def login():
     if username != config.user.split(':')[0] or password != config.user.split(':')[1]:
         return jsonify({"msg": "Bad username or password"}), 401
     session.close()
-    access_token = create_access_token(identity=username)
+    expires = timedelta(days=365)
+    access_token = create_access_token(identity=username, expires_delta=expires)
     return jsonify(access_token=access_token)
 
 
