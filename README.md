@@ -16,7 +16,7 @@
 ## 使用
 1. 修改`docker-compose.yml`、`nginx/Dockerfile`
 2. `docker-compose up -d`
-3. 创建cron任务，`curl http://127.0.0.1:xxxx/api/job`定时更新电影信息。
+3. 创建cron任务，`curl http://username@password@127.0.0.1:xxxx/api/job`定时更新电影信息。
 
 ## 注意
 1. 电影路径格式要求：默认为`豆瓣电影名（年份）`，路径内需存在视频文件（mkv/mp4/ts/flv）。
