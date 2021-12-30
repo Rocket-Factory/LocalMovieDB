@@ -15,7 +15,7 @@
 
 ## 使用
 1. 修改`docker-compose.yml`、`nginx/Dockerfile`
-2. `docker-compose up -d`
+2. `docker-compose build --no-cache && sudo docker-compose up -d`
 3. 创建cron任务，`curl http://username@password@127.0.0.1:xxxx/api/job`定时更新电影信息。
 
 ## 注意
@@ -23,6 +23,9 @@
 2. 豆瓣API会去获取新的电影和剧集，如不存在可能会导致数据库收录和推送失败，详见`https://douban.8610000.xyz/`。
 
 ## 更新
+### 2021-12-30
+1. 修复翻页加载bug
+
 ### 2021-12-29
 1. 修复大量bug（可以推送）
 
