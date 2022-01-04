@@ -1,8 +1,7 @@
 import re
 import os
 import time
-from database import DBSession, Movie, Tag, MovieTag, MovieDirector, MovieActor, Role
-from config import MOVIE_DIR_RE, ROOT_DIR
+from database import DBSession, Movie, Tag, MovieTag, MovieDirector, MovieActor, Role, Config
 from douban import get_movie
 from push import run as push_run
 import logging
@@ -10,6 +9,18 @@ import requests
 
 realpath = os.path.split(os.path.realpath(__file__))[0]
 logging.basicConfig(level=logging.INFO)
+
+
+try:
+    session = DBSession()
+    config = session.query(Config).get(1)
+    MOVIE_DIR_RE = config.movie_dir_re
+    ROOT_DIR = config.root_dir
+    PROXY = config.proxy_on
+    PROXY_URL = config.proxy_url
+    session.close()
+except Exception as e:
+    exit(0)
 
 
 # 从数据库删除路径不存在的电影
@@ -122,7 +133,10 @@ def update_or_insert(info):
 # 获取API简要电影信息(标题、年份、ID等)
 def get_q_movie_json():
     url = 'https://douban.8610000.xyz/q.json'
-    r = requests.get(url)
+    if PROXY:
+        r = requests.get(url,proxies={'http': PROXY_URL, 'https': PROXY_URL})
+    else:
+        r = requests.get(url)
     return r.json()
 
 

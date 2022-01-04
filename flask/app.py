@@ -1,15 +1,20 @@
-from flask import Flask, render_template, request, jsonify
-from flask_jwt import JWT, jwt_required, current_identity
+from flask import Flask, render_template, request, jsonify, redirect,url_for,Response
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
 from werkzeug.security import safe_str_cmp
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import func
-from database import Movie, Tag, MovieTag, MovieActor, MovieDirector, Role, DBSession
+from database import Movie, Tag, MovieTag, MovieActor, MovieDirector, Role, Config, DBSession
 from sqlalchemy import text
 from datetime import timedelta
-from config import PLAY_URI, USERS, SECRET_KEY, ROOT_DIR
+from functools import wraps
 import logging
 import requests
 import json
+import os
+import psutil
 
 
 app = Flask(__name__, static_url_path='',
@@ -18,42 +23,53 @@ app = Flask(__name__, static_url_path='',
 logging.basicConfig(level=logging.DEBUG)
 
 
-# JWT
-class User(object):
-    def __init__(self, id, username, password):
-        self.id = id
-        self.username = username
-        self.password = password
-
-    def __str__(self):
-        return "User(id='%s')" % self.id
+app.config["JWT_SECRET_KEY"] = os.environ['SECRET_KEY'] 
+USER = os.environ['USER'] 
+PASSWORD = os.environ['PASSWORD'] 
+jwt = JWTManager(app)
 
 
-users = [User(*user) for user in USERS]
-username_table = {u.username: u for u in users}
-userid_table = {u.id: u for u in users}
+def check_auth(username, password):
+    if username == USER and password == PASSWORD:
+        return True
+
+    return False
 
 
-def authenticate(username, password):
-    user = username_table.get(username, None)
-    if user and safe_str_cmp(user.password.encode('utf-8'), password.encode('utf-8')):
-        return user
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+        'Could not verify your access level for that URL.\n'
+        'You have to login with proper credentials', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
 
-def identity(payload):
-    user_id = payload['identity']
-    return userid_table.get(user_id, None)
-
-
-app.config['SECRET_KEY'] = SECRET_KEY
-app.config['JWT_AUTH_URL_RULE'] = '/api/auth'
-app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=3000000)
-jwt = JWT(app, authenticate, identity)
-
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route("/api/auth", methods=["POST"])
+def login():
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+    session = DBSession()
+    config = session.query(Config).get(1)
+    if username != config.user.split(':')[0] or password != config.user.split(':')[1]:
+        return jsonify({"msg": "Bad username or password"}), 401
+    session.close()
+    expires = timedelta(days=365)
+    access_token = create_access_token(identity=username, expires_delta=expires)
+    return jsonify(access_token=access_token)
 
 
 @app.route('/api/movies/random')
@@ -81,8 +97,9 @@ def get_movie_api(mid):
     directors = session.query(Role).join(MovieDirector, MovieDirector.director_id==Role.id).filter(MovieDirector.movie_id==mid)
     movie_json['directors_json'] = [json.loads(director.info) for director in directors]
 
-    movie_json['play_links'] = [
-        PLAY_URI + '/' + video_file for video_file in movie_json['viedo_files'].split(',/')]
+    movie_json['play_links'] = ['/' + video_file for video_file in movie_json['viedo_files'].split(',/')]
+    movie_json['user'] = USER
+    movie_json['password'] = PASSWORD
     return jsonify(movie_json)
 
 
@@ -185,7 +202,36 @@ def get_tags():
     return jsonify(tags)
 
 
+@app.route('/api/job')
+@requires_auth
+def run_job():
+    for p in psutil.process_iter():
+        if len(p.cmdline()) >1 and p.cmdline()[1]== 'job.py':
+            return 'Already started', 200
+    os.popen('python3 job.py')
+    return 'running',200
+
+
+def init():
+    session = DBSession()
+    if session.query(Config).filter().count() == 0:
+        user = USER +':'+ PASSWORD
+        movie_dir_re = os.environ['MOVIE_DIR_RE']
+        tg_push_on = True if os.environ['TG_ON']=='true' else False
+        tg_chatid = os.environ['TG_CHATID']
+        tg_bot_token = os.environ['TG_BOT_TOKEN']
+        bark_push_on = True if os.environ['BARK_ON']=='true' else False
+        bark_tokens = os.environ['BARK_TOKENS']
+        server_cyann_on = True if os.environ['SERVER_CYANN']=='true' else False
+        server_cyann_token = os.environ['SERVER_CYANN_TOKEN']
+        proxy_on = True if os.environ['PROXY_ON']=='true' else False
+        proxy_url = os.environ['PROXY_URL']
+        config = Config(user=user,root_dir='/mnt/media',movie_dir_re=movie_dir_re ,tg_push_on=tg_push_on,tg_chatid=tg_chatid,tg_bot_token=tg_bot_token,bark_push_on=bark_push_on,bark_tokens=bark_tokens,server_cyann_on=server_cyann_on,server_cyann_token=server_cyann_token,proxy_on=proxy_on,proxy_url=proxy_url)
+        session.add(config)
+        session.commit()
+        session.close()
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
+    init()
+    app.run(host='0.0.0.0', port=5006)

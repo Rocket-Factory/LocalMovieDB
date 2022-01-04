@@ -1,0 +1,68 @@
+version: "3.7"
+
+services:
+
+  flask:
+    build: ./flask
+    container_name: moviedbflask
+    restart: always
+    networks:
+      moviedb-net:
+        aliases:
+          - flask-app
+    environment:
+      - SECRET_KEY=ACDEF                     # 仅加密用,随意输入
+      - USER=user                            # 用户  要在nginx/Dockerfile中同步修改
+      - PASSWORD=pass                        # 密码
+      - MOVIE_DIR_RE=(.*?)（(\d{4})）        # 目录匹配正则，如：黑客帝国（1999）
+      # 以下为推送功能(扫描到新电影时推送)
+      - TG_ON=false                          # Telegram推送
+      - TG_CHATID=12345                      # Chat ID(频道/用户/群租)
+      - TG_BOT_TOKEN=xxxxx:xxxxx             # Bot Token
+      - BARK_ON=false                        # BARK推送
+      - BARK_TOKENS=PhvdCcGoQ59jxXM3pmoho8,  # BARK推送Token(多个)
+      - SERVER_CYANN=false                   # Server酱推送
+      - SERVER_CYANN_TOKEN=xxxxxx            # Server酱Token
+      - PROXY_ON=false                       # 使用代理需将本文件下面"clash"部分取消注释,修改clash.yaml
+      - PROXY_URL=http://clash-app:7890      # 不用修改
+
+    volumes:
+      - /mnt/xxx/xxx/电影:/mnt/media/电影 # 视频文件所在路径,挂载到/mnt/media/下
+      - /mnt/xxx/xxx/动画:/mnt/media/动画
+      - ./movies.db:/app/movies.db
+    ports:
+      - 5006
+
+
+  nginx:
+    build: ./nginx
+    container_name: moviedbnginx
+    restart: always
+    networks:
+      - moviedb-net
+    volumes:
+      - /mnt/xxx/xxx/电影:/usr/share/nginx/root/电影 # 同上
+      - /mnt/xxx/xxx/动画:/usr/share/nginx/root/动画
+    ports:
+      - "5012:80" # web映射端口,根据需求修改
+
+    depends_on:
+      - flask
+
+  # clash:
+  #   image: dreamacro/clash
+  #   container_name: clash
+  #   restart: always
+  #   networks:
+  #     moviedb-net:
+  #       aliases:
+  #         - clash-app
+  #   volumes:
+  #     - ./clash.yaml:/root/.config/clash/config.yaml
+  #   ports:
+  #     - "7890:7890"
+  #     - "7891:7891"
+
+
+networks:
+    moviedb-net:

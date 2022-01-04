@@ -130,8 +130,6 @@ dmypy.json
 
 config.py
 
-movies.db
-
 .idea
 .vscode/
 node_modules

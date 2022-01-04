@@ -1,6 +1,6 @@
 # coding: utf-8
 import os
-from sqlalchemy import Column, INTEGER, TEXT, DATETIME, create_engine
+from sqlalchemy import Column, INTEGER, TEXT, BOOLEAN, DATETIME, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.pool import StaticPool
@@ -13,6 +13,51 @@ engine = create_engine('sqlite:///{}'.format(sql_path),
                        echo=False)
 DBSession = sessionmaker(bind=engine)
 Base = declarative_base()
+
+
+class Config(Base):
+    __tablename__ = 'config'
+
+    id = Column(INTEGER, primary_key=True)
+    user = Column(TEXT)
+    root_dir = Column(TEXT)
+    movie_dir_re = Column(TEXT)
+    tg_push_on = Column(BOOLEAN)
+    tg_chatid = Column(TEXT)
+    tg_bot_token= Column(TEXT)
+    bark_push_on = Column(BOOLEAN)
+    bark_tokens = Column(TEXT)
+    server_cyann_on = Column(BOOLEAN)
+    server_cyann_token = Column(TEXT)
+    proxy_on = Column(BOOLEAN)
+    proxy_url = Column(TEXT)
+
+
+    def __init__(self, user, root_dir, movie_dir_re, tg_push_on, tg_chatid, tg_bot_token, bark_push_on,
+                 bark_tokens, server_cyann_on, server_cyann_token, proxy_on, proxy_url):
+        self.user = user
+        self.root_dir = root_dir
+        self.movie_dir_re = movie_dir_re
+        self.tg_push_on = tg_push_on
+        self.tg_chatid = tg_chatid
+        self.tg_bot_token = tg_bot_token
+        self.bark_push_on = bark_push_on
+        self.bark_tokens = bark_tokens
+        self.server_cyann_on = server_cyann_on
+        self.server_cyann_token = server_cyann_token
+        self.proxy_on = proxy_on
+        self.proxy_url = proxy_url
+    
+    
+    def to_json(self):
+        if hasattr(self, '__table__'):
+            _json = {}
+            for i in self.__table__.columns:
+                if i.name == 'id':
+                    continue
+                _json[i.name] = getattr(self, i.name)
+            return _json
+        raise AssertionError('<%r> does not have attribute for __table__' % self)
 
 
 class Movie(Base):
