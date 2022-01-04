@@ -7,10 +7,9 @@
 - Web页面展示电影列表和播放页面（调用PC、移动端视频APP）
 - 标题搜索、排序、Tag筛选
 
-![PC0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC0.jpg)
-![MB0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC1.jpg)
-![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/mb0.jpg)
-![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/mb1.jpg)
+![PC0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC0.png)
+![MB0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC1.png)
+![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/MB.png)
 
 
 ## 使用
