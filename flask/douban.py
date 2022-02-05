@@ -15,7 +15,10 @@ def get_db_info(subject_id):
     info_json = json.loads(r.text)
     fanart = ''
     if 'extra' in info_json and 'backdrops' in info_json['extra']:
-        fanart = info_json['extra']['backdrops'][0]
+        try:
+            fanart = info_json['extra']['backdrops'][0]
+        except Exception:
+            fanart = ''
     result = {'basic': {
         'title': info_json['title'],
         '_type': '剧集' if info_json['is_tv'] else '电影',
