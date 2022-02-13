@@ -20,11 +20,9 @@ services:
       - TG_CHATID=12345                      # Chat ID(频道/用户/群租)
       - TG_BOT_TOKEN=xxxxx:xxxxx             # Bot Token
       - BARK_ON=false                        # BARK推送
-      - BARK_TOKENS=PhvdCcGoQ59jxXM3pmoho8,  # BARK推送Token(多个)
+      - BARK_TOKENS=XXXX,xxxx                # BARK推送Token(支持多个)
       - SERVER_CYANN=false                   # Server酱推送
       - SERVER_CYANN_TOKEN=xxxxxx            # Server酱Token
-      - PROXY_ON=false                       # 使用代理需将本文件下面"clash"部分取消注释,修改clash.yaml
-      - PROXY_URL=http://clash-app:7890      # 不用修改
 
     volumes:
       - /mnt/xxx/xxx/电影:/mnt/media/电影 # 视频文件所在路径,挂载到/mnt/media/下
@@ -48,20 +46,6 @@ services:
 
     depends_on:
       - flask
-
-  # clash:
-  #   image: dreamacro/clash
-  #   container_name: clash
-  #   restart: always
-  #   networks:
-  #     moviedb-net:
-  #       aliases:
-  #         - clash-app
-  #   volumes:
-  #     - ./clash.yaml:/root/.config/clash/config.yaml
-  #   ports:
-  #     - "7890:7890"
-  #     - "7891:7891"
 
 
 networks:

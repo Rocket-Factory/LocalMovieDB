@@ -224,8 +224,8 @@ def init():
         bark_tokens = os.environ['BARK_TOKENS']
         server_cyann_on = True if os.environ['SERVER_CYANN']=='true' else False
         server_cyann_token = os.environ['SERVER_CYANN_TOKEN']
-        proxy_on = True if os.environ['PROXY_ON']=='true' else False
-        proxy_url = os.environ['PROXY_URL']
+        proxy_on = False
+        proxy_url = ''
         config = Config(user=user,root_dir='/mnt/media',movie_dir_re=movie_dir_re ,tg_push_on=tg_push_on,tg_chatid=tg_chatid,tg_bot_token=tg_bot_token,bark_push_on=bark_push_on,bark_tokens=bark_tokens,server_cyann_on=server_cyann_on,server_cyann_token=server_cyann_token,proxy_on=proxy_on,proxy_url=proxy_url)
         session.add(config)
         session.commit()

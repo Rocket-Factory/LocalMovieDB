@@ -16,8 +16,6 @@ try:
     config = session.query(Config).get(1)
     MOVIE_DIR_RE = config.movie_dir_re
     ROOT_DIR = config.root_dir
-    PROXY = config.proxy_on
-    PROXY_URL = config.proxy_url
     session.close()
 except Exception as e:
     exit(0)
@@ -133,10 +131,7 @@ def update_or_insert(info):
 # 获取API简要电影信息(标题、年份、ID等)
 def get_q_movie_json():
     url = 'https://douban.8610000.xyz/q.json'
-    if PROXY:
-        r = requests.get(url,proxies={'http': PROXY_URL, 'https': PROXY_URL})
-    else:
-        r = requests.get(url)
+    r = requests.get(url)
     return r.json()
 
 
