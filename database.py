@@ -68,6 +68,8 @@ class UserMovie(Base):
     rating = Column(INTEGER)  # -1:No rating
 
     def __init__(self, user_id, movie_id, watch_status=0, comment='', rating=-1):
+        self.user_id = user_id
+        self.movie_id = movie_id
         self.watch_status = watch_status
         self.comment = comment
         self.rating = rating

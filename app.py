@@ -10,6 +10,9 @@ import logging
 from threading import Thread
 
 
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s %(levelname)s %(threadName)s %(filename)s %(message)s")
+
 ROOT_DIR = '/mnt/media'
 MOVIE_DIR_RE = '(.*?)（(\d{4})）'
 JOB_INTERVAL = 1800
@@ -22,11 +25,11 @@ app = Flask(__name__, static_url_path='',
             static_folder='static')
 
 
-logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s %(levelname)s %(threadName)s %(filename)s %(message)s")
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 1728000
 
 with open('secret') as f:
     secret_key = f.read()
+
 app.config["JWT_SECRET_KEY"] = secret_key
 
 jwt = JWTManager(app)
@@ -107,7 +110,7 @@ def mark_user_movie():
     comment = request.json.get("comment", '')
     rating = request.json.get("rating", -1)
     user_id = current_user.id
-    user_movie_json = mark_user_movie(
+    user_movie_json = sql_util.mark_user_movie(
         user_id, mid, watch_status, comment, rating)
     if not user_movie_json:
         return jsonify(status='error', msg='Wrong request'), 400
@@ -145,8 +148,8 @@ def get_role_info(rid):
 @jwt_required()
 def get_tags():
     args = request.args.to_dict()
-    tags = sql_util.get_top_tags(args)
-    return jsonify(tags)
+    tag_list = sql_util.get_top_tags(args)
+    return jsonify(tag_list)
 
 
 @app.route('/api/app/init', methods=["POST"])

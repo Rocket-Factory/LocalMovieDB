@@ -1,4 +1,5 @@
 import json
+import logging
 
 from database import User, Movie, UserMovie, Tag, MovieTag, MovieActor, MovieDirector, Role, Setting, DBSession
 
@@ -89,32 +90,34 @@ def get_user_movies_json(user_id):
     session.close()
     return movies_json
 
-def mark_user_movie(user_id,mid,watch_status,comment,rating):
+
+def mark_user_movie(user_id, mid, watch_status, comment, rating):
     session = DBSession()
-    if not get_user_or_none_by_id(user_id):
+    if session.query(Movie).filter_by(id=mid).count() == 0:
         session.close()
         return None
-    if session.query(Movie).filter_by(Movie.id==mid).count()==0:
+    if not isinstance(watch_status, int) or not isinstance(rating, int):
         session.close()
         return None
-    if not isinstance(watch_status,int) or not isinstance(rating,int):
-        session.close()
-        return None
-    user_movie = session.query(UserMovie).filter_by(user_id=user_id,movie_id = mid).one_or_none()
+    user_movie = session.query(UserMovie).filter_by(
+        user_id=user_id, movie_id=mid).one_or_none()
     if not user_movie:
-        new_user_movie = UserMovie(user_id=user_id,movie_id=mid,watch_status=watch_status,comment=comment,rating=rating)
+        new_user_movie = UserMovie(user_id=user_id, movie_id=mid,
+                                   watch_status=watch_status, comment=comment, rating=rating)
         session.add(new_user_movie)
-        session.commit()
         session.flush()
-        return new_user_movie.to_json()
+        user_movie_json = new_user_movie.to_json()
+        session.commit()
+        session.close()
     else:
         user_movie.watch_status = watch_status
         user_movie.comment = comment
         user_movie.rating = rating
+        session.flush()
+        user_movie_json = user_movie.to_json()
         session.commit()
         session.close()
-        return user_movie.to_json()
-
+    return user_movie_json
 
 
 def get_user_movie_status_json(user_id, mid):
@@ -205,13 +208,13 @@ def get_movies_json(args):
     return result
 
 
-def get_movie_json_by_id(mid,user_id):
+def get_movie_json_by_id(mid, user_id):
     session = DBSession()
     query = session.query(Movie)
     movie = query.get(mid)
     movie_json = movie.to_json()
 
-    user_movie_json = get_user_movie_status_json(user_id,mid)
+    user_movie_json = get_user_movie_status_json(user_id, mid)
     movie_json['user_status'] = user_movie_json
 
     tags = session.query(Tag).join(
@@ -245,8 +248,9 @@ def get_top_tags(args):
     tags = session.query(Tag.text, func.count(Tag.text)).join(MovieTag, Tag.id == MovieTag.tag_id).group_by(
         Tag.text).order_by(func.count(Tag.text).desc()).slice((page - 1) * limit, page * limit).all()
 
+    tag_list = [[tag[0], tag[1]] for tag in tags]
     session.close()
-    return tags
+    return tag_list
 
 
 def get_role_json_by_id(rid):
@@ -259,7 +263,7 @@ def get_role_json_by_id(rid):
     director_movies = session.query(Movie).join(
         MovieDirector, Movie.id == MovieDirector.movie_id).filter(MovieDirector.director_id == rid)
     for movie in director_movies:
-        movies_json.append(movie.to_json())
+        movies_json.append(movie.basic_json())
     role_json['related_movies'] = movies_json
 
     session.close()
