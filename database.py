@@ -1,12 +1,16 @@
 # coding: utf-8
 import os
-from sqlalchemy import Column, INTEGER, TEXT, BOOLEAN, DATETIME, create_engine
+
+import bcrypt
+from sqlalchemy import Column, INTEGER, TEXT, DATETIME, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.sql.sqltypes import Boolean
+
 
 realpath = os.path.split(os.path.realpath(__file__))[0]
-sql_path = os.path.join(realpath,'movies.db')
+sql_path = os.path.join(realpath, 'movies.db')
 engine = create_engine('sqlite:///{}'.format(sql_path),
                        connect_args={'check_same_thread': False},
                        poolclass=StaticPool,
@@ -15,73 +19,92 @@ DBSession = sessionmaker(bind=engine)
 Base = declarative_base()
 
 
-class Config(Base):
-    __tablename__ = 'config'
+class Setting(Base):
+    __tablename__ = 'setting'
+    key = Column(TEXT, primary_key=True)
+    value = Column(TEXT)
+
+    """
+    root_dir
+    job_interval
+    movie_dir_re
+    inited
+    """
+
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+
+
+class User(Base):
+    __tablename__ = 'user'
 
     id = Column(INTEGER, primary_key=True)
-    user = Column(TEXT)
-    root_dir = Column(TEXT)
-    movie_dir_re = Column(TEXT)
-    tg_push_on = Column(BOOLEAN)
-    tg_chatid = Column(TEXT)
-    tg_bot_token= Column(TEXT)
-    bark_push_on = Column(BOOLEAN)
-    bark_tokens = Column(TEXT)
-    server_cyann_on = Column(BOOLEAN)
-    server_cyann_token = Column(TEXT)
-    proxy_on = Column(BOOLEAN)
-    proxy_url = Column(TEXT)
+    username = Column(TEXT)
+    passwd = Column(TEXT)
+    admin = Column(Boolean)
+
+    def __init__(self, username, passwd, admin=False):
+        self.username = username
+        self.passwd = passwd
+        self.admin = admin
+
+    def verify_password(self, password):
+        pwhash = bcrypt.hashpw(password.encode('utf-8'), self.passwd)
+        return self.passwd == pwhash
+
+    def to_json(self):
+        return {'username': self.username, 'admin': self.admin}
 
 
-    def __init__(self, user, root_dir, movie_dir_re, tg_push_on, tg_chatid, tg_bot_token, bark_push_on,
-                 bark_tokens, server_cyann_on, server_cyann_token, proxy_on, proxy_url):
-        self.user = user
-        self.root_dir = root_dir
-        self.movie_dir_re = movie_dir_re
-        self.tg_push_on = tg_push_on
-        self.tg_chatid = tg_chatid
-        self.tg_bot_token = tg_bot_token
-        self.bark_push_on = bark_push_on
-        self.bark_tokens = bark_tokens
-        self.server_cyann_on = server_cyann_on
-        self.server_cyann_token = server_cyann_token
-        self.proxy_on = proxy_on
-        self.proxy_url = proxy_url
-    
-    
+class UserMovie(Base):
+    __tablename__ = 'user_movie'
+
+    id = Column(INTEGER, primary_key=True)
+    user_id = Column(INTEGER)
+    movie_id = Column(INTEGER)
+    watch_status = Column(INTEGER)  # 0:None 1:Towatch 2: Watched
+    comment = Column(TEXT)
+    rating = Column(INTEGER)  # -1:No rating
+
+    def __init__(self, user_id, movie_id, watch_status=0, comment='', rating=-1):
+        self.watch_status = watch_status
+        self.comment = comment
+        self.rating = rating
+
     def to_json(self):
         if hasattr(self, '__table__'):
             _json = {}
             for i in self.__table__.columns:
-                if i.name == 'id':
+                if i.name == 'id' or i.name == 'user_id' or i.name == 'movie_id':
                     continue
                 _json[i.name] = getattr(self, i.name)
             return _json
-        raise AssertionError('<%r> does not have attribute for __table__' % self)
+        raise AssertionError(
+            '<%r> does not have attribute for __table__' % self)
 
 
 class Movie(Base):
     __tablename__ = 'movie'
 
     id = Column(INTEGER, primary_key=True)
-    type = Column(TEXT)  # 类型
-    title = Column(TEXT)  # 标题
-    original_title = Column(TEXT)  # 原标题
-    year = Column(INTEGER)  # 年份
-    update_date = Column(DATETIME)  # 更新日期
-    fanart = Column(TEXT) # 剧照大图
-    trailer = Column(TEXT)  # 预告片
-    uri = Column(TEXT)  # 资源路径
-    douban_url = Column(TEXT)  # 豆瓣链接
-    thumbnail_url = Column(TEXT)  # 缩略图
-    douban_rating = Column(TEXT)  # 豆瓣评分
-    intro = Column(TEXT) #简介
-    viedo_files =  Column(TEXT) # 视频文件
-    desc_html = Column(TEXT) # 描述嵌入页面
-
+    type = Column(TEXT)
+    title = Column(TEXT)
+    original_title = Column(TEXT)
+    year = Column(INTEGER)
+    update_date = Column(DATETIME)
+    fanart = Column(TEXT)
+    trailer = Column(TEXT)
+    uri = Column(TEXT)
+    douban_url = Column(TEXT)
+    thumbnail_url = Column(TEXT)
+    douban_rating = Column(TEXT)
+    intro = Column(TEXT)
+    video_files = Column(TEXT)
+    desc_html = Column(TEXT)
 
     def __init__(self, title, _type, original_title, year, update_date, trailer, fanart, uri, douban_url, thumbnail_url,
-                 douban_rating, intro, viedo_files, desc_html):
+                 douban_rating, intro, video_files, desc_html):
         self.title = title
         self.type = _type
         self.original_title = original_title
@@ -94,7 +117,7 @@ class Movie(Base):
         self.thumbnail_url = thumbnail_url
         self.douban_rating = douban_rating
         self.intro = intro
-        self.viedo_files = viedo_files
+        self.video_files = video_files
         self.desc_html = desc_html
 
     def __repr__(self):
@@ -103,7 +126,6 @@ class Movie(Base):
             else '{} （{}）'.format(self.title, self.year)
 
         return 'Movie:{}'.format(full_title)
-
 
     def to_json(self):
         if hasattr(self, '__table__'):
@@ -114,11 +136,27 @@ class Movie(Base):
                     continue
                 _json[i.name] = getattr(self, i.name)
             return _json
-        raise AssertionError('<%r> does not have attribute for __table__' % self)
+        raise AssertionError(
+            '<%r> does not have attribute for __table__' % self)
+
+    def basic_json(self):
+        if hasattr(self, '__table__'):
+            _json = {}
+            for i in self.__table__.columns:
+                if i.name == 'video_files' or i.name == 'uri' or i.name == 'desc_html' or i.name == 'trailer' or i.name == 'fanart':
+                    continue
+                if i.name == 'update_date':
+                    _json[i.name] = str(getattr(self, i.name))[:10]
+                    continue
+                _json[i.name] = getattr(self, i.name)
+            return _json
+        raise AssertionError(
+            '<%r> does not have attribute for __table__' % self)
 
 
 class MovieTag(Base):
     __tablename__ = 'movie_tag'
+
     id = Column(INTEGER, primary_key=True)
     movie_id = Column(INTEGER)
     tag_id = Column(INTEGER)
@@ -135,14 +173,15 @@ class Tag(Base):
 
     def __init__(self, text):
         self.text = text
-    
+
     def to_json(self):
         if hasattr(self, '__table__'):
             _json = {}
             for i in self.__table__.columns:
                 _json[i.name] = getattr(self, i.name)
             return _json
-        raise AssertionError('<%r> does not have attribute for __table__' % self)
+        raise AssertionError(
+            '<%r> does not have attribute for __table__' % self)
 
 
 class MovieActor(Base):
@@ -154,6 +193,7 @@ class MovieActor(Base):
     def __init__(self, movie_id, actor_id):
         self.movie_id = movie_id
         self.actor_id = actor_id
+
 
 class MovieDirector(Base):
     __tablename__ = 'movie_director'
@@ -176,14 +216,14 @@ class Role(Base):
         self.info = info
         self.name = name
 
-    
     def to_json(self):
         if hasattr(self, '__table__'):
             _json = {}
             for i in self.__table__.columns:
                 _json[i.name] = getattr(self, i.name)
             return _json
-        raise AssertionError('<%r> does not have attribute for __table__' % self)
+        raise AssertionError(
+            '<%r> does not have attribute for __table__' % self)
 
 
 Base.metadata.create_all(engine)

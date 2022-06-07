@@ -133,3 +133,15 @@ config.py
 .idea
 .vscode/
 node_modules
+
+# sqlite
+movies.db
+
+# cache
+q.cache
+
+# 
+secret
+secure_password
+
+test_*.py
