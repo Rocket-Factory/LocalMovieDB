@@ -8,7 +8,7 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Ailurus/68.0'}
 
 DOUBAN_MOVIE_JSON_API = 'https://douban.8610000.xyz'
-Q_FILE_PATH = './q.cache'
+Q_FILE_PATH = './data/q.cache'
 
 
 def q_file_exists():

@@ -9,9 +9,10 @@ NGINX_CONF_FILE = '/etc/nginx/nginx.conf'
 
 
 def get_secure_passwd():
-    with open('secure_password') as f:
+    with open('./data/secure_password') as f:
         secure_passwd = f.read()
     return secure_passwd
+
 
 def gen_movie_links(url_prefix, secure_passwd, video_files_str):
     def gen_md5(text, isBackByte=False):

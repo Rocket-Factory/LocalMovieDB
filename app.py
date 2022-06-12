@@ -7,6 +7,8 @@ from utils import sql_util, nginx_util
 import job
 
 import logging
+import os
+import shutil
 from threading import Thread
 
 
@@ -18,6 +20,13 @@ MOVIE_DIR_RE = '(.*?)（(\d{4})）'
 JOB_INTERVAL = 1800
 URL_PREFIX = '/share/'
 
+
+if not os.path.exists('./data/secret'):
+    shutil.copy('./.secret', './data/secret')
+if not os.path.exists('./data/secure_password'):
+    shutil.copy('./.secure_password', './data/secure_password')
+
+
 c = job.UpdateTask()
 
 
@@ -27,7 +36,7 @@ app = Flask(__name__, static_url_path='',
 
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 1728000
 
-with open('secret') as f:
+with open('./data/secret') as f:
     secret_key = f.read()
 
 app.config["JWT_SECRET_KEY"] = secret_key
@@ -169,6 +178,35 @@ def init():
         return jsonify(status='success', msg='App init finished'), 200
     else:
         return jsonify(status='error', msg='Wrong request, app has already inited'), 400
+
+
+@app.route('/api/app/movie_data/update', methods=["GET"])
+@jwt_required()
+def update_data_immediatlly():
+    if not current_user.admin:
+        return jsonify(status='error', msg='Wrong request'), 400
+    if c.is_running:
+        return jsonify(status='error', msg='Update job is running now'), 400
+
+    t = Thread(target=c.update_movie_data)
+    t.start()
+    return jsonify(status='success', msg='Update job started'), 200
+
+
+@app.route('/api/app/movie_data/update/progress', methods=["GET"])
+@jwt_required()
+def get_update_progress():
+    if not current_user.admin:
+        return jsonify(status='error', msg='Wrong request'), 400
+    return jsonify(status='success', msg=c.get_current_msg())
+
+
+@app.route('/api/app/movie_data/update/log', methods=["GET"])
+@jwt_required()
+def get_update_log():
+    if not current_user.admin:
+        return jsonify(status='error', msg='Wrong request'), 400
+    return jsonify(status='success', msg=c.messages)
 
 
 if __name__ == '__main__':

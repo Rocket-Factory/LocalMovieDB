@@ -10,7 +10,7 @@ from sqlalchemy.sql.sqltypes import Boolean
 
 
 realpath = os.path.split(os.path.realpath(__file__))[0]
-sql_path = os.path.join(realpath, 'movies.db')
+sql_path = os.path.join(realpath, './data/movies.db')
 engine = create_engine('sqlite:///{}'.format(sql_path),
                        connect_args={'check_same_thread': False},
                        poolclass=StaticPool,
