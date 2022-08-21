@@ -210,6 +210,7 @@ def get_update_log():
 
 
 if __name__ == '__main__':
+    os.system('service nginx restart')
     t = Thread(target=c.run, args=(1800,))
     t.start()
     app.run(host='0.0.0.0', port=5006)
