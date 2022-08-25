@@ -9,8 +9,9 @@ WORKDIR /app
 COPY . .
 
 # prepare environment
-RUN mv docker_things/ubuntu_focal_sources.list /etc/apt/sources.list
-RUN chmod 664 /etc/apt/sources.list
+# error when build in arm machine
+# RUN mv docker_things/ubuntu_focal_sources.list /etc/apt/sources.list
+# RUN chmod 664 /etc/apt/sources.list
 RUN apt update
 RUN apt install -y python3 python3-dev python3-pip nginx wget gcc openssl libssl-dev libpcre3 libpcre3-dev zlib1g-dev make
 
