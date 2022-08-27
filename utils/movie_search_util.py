@@ -8,7 +8,7 @@ realpath = os.path.split(os.path.realpath(__file__))[0]
 def search_video_files(path, files):
     for file_ in os.listdir(path):
         if os.path.isfile(os.path.join(path, file_)):
-            if file_.split('.')[-1] in ['mp4', 'mkv', 'ts', 'flv']:
+            if file_.split('.')[-1] in ['mp4', 'mkv', 'ts', 'flv'] and not file_.startswith('.'):
                 files.append(os.path.join(path, file_))
             continue
         search_video_files(os.path.join(path, file_), files)
