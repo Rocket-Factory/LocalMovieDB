@@ -90,6 +90,7 @@ class Movie(Base):
     __tablename__ = 'movie'
 
     id = Column(INTEGER, primary_key=True)
+    mid=Column(TEXT)
     type = Column(TEXT)
     title = Column(TEXT)
     original_title = Column(TEXT)
@@ -104,9 +105,11 @@ class Movie(Base):
     intro = Column(TEXT)
     video_files = Column(TEXT)
     desc_html = Column(TEXT)
+    recommendations = Column(TEXT)
 
-    def __init__(self, title, _type, original_title, year, update_date, trailer, fanart, uri, douban_url, thumbnail_url,
-                 douban_rating, intro, video_files, desc_html):
+    def __init__(self, mid, title, _type, original_title, year, update_date, trailer, fanart, uri, douban_url, thumbnail_url,
+                 douban_rating, intro, video_files, desc_html, recommendations):
+        self.mid = mid
         self.title = title
         self.type = _type
         self.original_title = original_title
@@ -121,6 +124,8 @@ class Movie(Base):
         self.intro = intro
         self.video_files = video_files
         self.desc_html = desc_html
+        self.recommendations = recommendations
+        
 
     def __repr__(self):
         full_title = '{} {} （{}）'.format(self.title, self.type, self.original_title,
@@ -211,10 +216,12 @@ class MovieDirector(Base):
 class Role(Base):
     __tablename__ = 'role'
     id = Column(INTEGER, primary_key=True)
+    rid = Column(TEXT)
     name = Column(TEXT)
     info = Column(TEXT)
 
-    def __init__(self, name, info):
+    def __init__(self, rid, name, info):
+        self.rid = rid
         self.info = info
         self.name = name
 

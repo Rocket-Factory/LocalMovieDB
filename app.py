@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect
 from flask_jwt_extended.utils import create_access_token, current_user
 from flask_jwt_extended.view_decorators import jwt_required
 from flask_jwt_extended.jwt_manager import JWTManager
@@ -71,7 +71,15 @@ def login():
 
 @app.route('/')
 def index():
+    if not sql_util.get_setting_value('inited'):
+        return redirect('/init_page')
     return render_template('index.html')
+
+@app.route('/init_page')
+def init_app_page():
+    if sql_util.get_setting_value('inited'):
+        return redirect('/')
+    return render_template('init.html')
 
 
 @app.route("/api/user/whoiam", methods=["GET"])
@@ -136,6 +144,13 @@ def get_movie_api(mid):
     movie_json['play_links'] = nginx_util.gen_movie_links(
         url_prefix, secure_passwd, movie_json['video_files'])
     return jsonify(movie_json)
+
+
+@app.route('/api/movie/<int:mid>/recommendations')
+@jwt_required()
+def get_movie_recommendations_api(mid):
+    recommendations_json = sql_util.get_movie_recommendations_json_by_id(mid)
+    return jsonify(recommendations_json)
 
 
 @app.route('/api/movies')

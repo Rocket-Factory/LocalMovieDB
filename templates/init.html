@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+
+<body>
+  <div id="app" style="width:500px;margin:auto">
+    <div v-if="step===0">
+      <h4>管理员设置:</h4>
+      <el-form :model="ruleForm0" :rules="rules0" ref="ruleForm0" label-width="120px" class="demo-ruleForm">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="ruleForm0.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="pass">
+          <el-input type="password" v-model="ruleForm0.pass" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="确认密码" prop="checkPass">
+          <el-input type="password" v-model="ruleForm0.checkPass" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="影视根目录" prop="rootPath">
+          <el-input disabled v-model="ruleForm0.rootPath"></el-input>
+        </el-form-item>
+        <el-form-item label="文件夹正则" prop="dirRe">
+          <el-input v-model="ruleForm0.dirRe"></el-input>
+          <span>默认为`豆瓣电影名（年份）`, 如`芬奇（2021）`</span>
+        </el-form-item>
+        <el-form-item label="扫描间隔(秒)" prop="jobInterval">
+          <el-input v-model="ruleForm0.jobInterval"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="submitForm('ruleForm0')">下一步</el-button>
+          <el-button @click="resetForm('ruleForm0')">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+    <div v-else-if="step===1">
+      <h4>新建普通用户</h4>
+      <el-form :model="ruleForm1" :rules="rules1" ref="ruleForm1" label-width="100px" class="demo-ruleForm">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="ruleForm1.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="pass">
+          <el-input type="password" v-model="ruleForm1.pass" autocomplete="off"></el-input>
+        </el-form-item>
+
+        <el-button type="primary" @click="submitForm('ruleForm1')">完成</el-button>
+        <el-button @click="resetForm('ruleForm1')">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+    <div v-else-if="step===2">
+      <h4>初始化完成，正在扫描中...</h4>
+      <a href="/">
+        <el-button type="success" plain>回到首页</el-button>
+      </a>
+    </div>
+  </div>
+</body>
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+  new Vue({
+    el: '#app',
+    data() {
+      var validatePass = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入密码'));
+        } else {
+          if (this.ruleForm0.checkPass !== '') {
+            this.$refs.ruleForm0.validateField('checkPass');
+          }
+          callback();
+        }
+      };
+      var validatePass2 = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请再次输入密码'));
+        } else if (value !== this.ruleForm0.pass) {
+          callback(new Error('两次输入密码不一致!'));
+        } else {
+          callback();
+        }
+      };
+      return {
+        step: 0,
+        token: '',
+        ruleForm0: {
+          username: '',
+          pass: '',
+          checkPass: '',
+          rootPath: '/mnt/media',
+          dirRe: `(.*?)（(\\d{4})）`,
+          jobInterval: 1800,
+        },
+        ruleForm1: {
+          username: '',
+          pass: '',
+          checkPass: '',
+        },
+        rules0: {
+          username: [
+            { required: true, message: '用户名必填', trigger: 'blur' },
+            { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+          ],
+          pass: [
+            { required: true, validator: validatePass, trigger: 'blur' }
+          ],
+          checkPass: [
+            { required: true, validator: validatePass2, trigger: 'blur' }
+          ],
+          rootPath: [
+            { required: true, }
+          ],
+          dirRe: [
+            { required: true, }
+          ],
+          jobInterval: [
+            { required: true, }
+          ],
+        },
+        rules1: {
+          username: [
+            { required: true, message: '用户名必填', trigger: 'blur' },
+            { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+          ],
+          pass: [
+            { required: true, message: '密码必填', trigger: 'blur' }
+          ],
+        }
+      };
+    },
+    methods: {
+      submitForm(formName) {
+        const ruleForm0 = this.ruleForm0;
+        const ruleForm1 = this.ruleForm1;
+        let that = this;
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            if (formName === 'ruleForm0') {
+              fetch('/api/app/init', {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                credentials: 'same-origin',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                referrerPolicy: 'no-referrer',
+                body: JSON.stringify({ username: ruleForm0.username, password: ruleForm0.pass, root_dir: ruleForm0.rootPath, movie_dir_re: ruleForm0.dirRe, job_interval: ruleForm0.jobInterval })
+              }).then(response => response.json())
+                .then(data => {
+                  console.log(data);
+                  let thot = that;
+                  if (data.status === 'success') {
+                    fetch('/api/user/login', {
+                      method: 'POST',
+                      mode: 'cors',
+                      cache: 'no-cache',
+                      credentials: 'same-origin',
+                      headers: {
+                        'Content-Type': 'application/json'
+                      },
+                      referrerPolicy: 'no-referrer',
+                      body: JSON.stringify({ username: ruleForm0.username, password: ruleForm0.pass, })
+                    }).then(response => response.json())
+                      .then(data => {
+                        thot.token = data.access_token;
+                        thot.step = 1;
+                      }).catch((error) => {
+                        console.error('Error:', error);
+                        alert('请求出错！');
+                      });
+                  } else if (data.msg === 'Wrong request, app has already inited') {
+                    alert('请勿重复初始化！');
+                  }
+                }).catch((error) => {
+                  console.error('Error:', error);
+                  alert('请求出错！');
+                });
+            } else {
+              let thot = that;
+              fetch('/api/user/new', {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                credentials: 'same-origin',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${that.token}`,
+                },
+                referrerPolicy: 'no-referrer',
+                body: JSON.stringify({ username: ruleForm1.username, password: ruleForm1.pass, })
+              }).then(response => response.json())
+                .then(data => {
+                  console.log(data);
+                  if (data.status === 'error' && data.msg === 'Username exists') {
+                    alert('用户名已存在！');
+                  } else if (data.username === ruleForm1.username) {
+                    thot.step = 2;
+                    fetch('/api/app/movie_data/update', {
+                      method: 'GET',
+                      mode: 'cors',
+                      cache: 'no-cache',
+                      credentials: 'same-origin',
+                      headers: {
+                        'Authorization': `Bearer ${that.token}`,
+                      },
+                      referrerPolicy: 'no-referrer',
+                    });
+                  }
+                }).catch((error) => {
+                  console.error('Error:', error);
+                  alert('请求出错！');
+                });
+            }
+          }
+        });
+      },
+      resetForm(formName) {
+        this.$refs[formName].resetFields();
+      }
+    }
+  })
+</script>
+
+</html>
