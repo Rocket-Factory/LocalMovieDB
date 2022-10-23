@@ -75,6 +75,7 @@ def index():
         return redirect('/init_page')
     return render_template('index.html')
 
+
 @app.route('/init_page')
 def init_app_page():
     if sql_util.get_setting_value('inited'):
@@ -151,6 +152,20 @@ def get_movie_api(mid):
 def get_movie_recommendations_api(mid):
     recommendations_json = sql_util.get_movie_recommendations_json_by_id(mid)
     return jsonify(recommendations_json)
+
+
+@app.route('/api/movie/<int:douban_id>/videos')
+@jwt_required()
+def get_movie_videos(douban_id):
+    video_files_str = sql_util.get_movie_video_files_by_douban_id(str(douban_id))
+    if video_files_str != '':
+        url_prefix = URL_PREFIX
+        secure_passwd = nginx_util.get_secure_passwd()
+        video_links = nginx_util.gen_movie_links(
+            url_prefix, secure_passwd, video_files_str)
+        return jsonify(video_links)
+    else:
+        return jsonify(status='error', msg='Not found'), 404
 
 
 @app.route('/api/movies')

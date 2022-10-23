@@ -252,6 +252,16 @@ def get_movie_recommendations_json_by_id(mid):
     return recommendations
 
 
+def get_movie_video_files_by_douban_id(douban_id):
+    session = DBSession()
+    target_movie = session.query(Movie).filter(Movie.mid == douban_id).first()
+    video_files_str = ''
+    if target_movie:
+        video_files_str = target_movie.video_files
+    session.close()
+    return video_files_str
+
+
 def get_top_tags(args):
     page = 1
     limit = 15
