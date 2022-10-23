@@ -90,7 +90,7 @@ class Movie(Base):
     __tablename__ = 'movie'
 
     id = Column(INTEGER, primary_key=True)
-    mid=Column(TEXT)
+    mid = Column(TEXT)
     type = Column(TEXT)
     title = Column(TEXT)
     original_title = Column(TEXT)
@@ -125,7 +125,6 @@ class Movie(Base):
         self.video_files = video_files
         self.desc_html = desc_html
         self.recommendations = recommendations
-        
 
     def __repr__(self):
         full_title = '{} {} （{}）'.format(self.title, self.type, self.original_title,
@@ -150,7 +149,7 @@ class Movie(Base):
         if hasattr(self, '__table__'):
             _json = {}
             for i in self.__table__.columns:
-                if i.name == 'video_files' or i.name == 'uri' or i.name == 'desc_html' or i.name == 'trailer' or i.name == 'fanart':
+                if i.name not in ['id', 'mid', 'title', 'type', 'original_title', 'year', 'update_date', 'thumbnail_url', 'douban_rating', 'intro']:
                     continue
                 if i.name == 'update_date':
                     _json[i.name] = str(getattr(self, i.name))[:10]
