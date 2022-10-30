@@ -262,6 +262,16 @@ def get_movie_video_files_by_douban_id(douban_id):
     return video_files_str
 
 
+def get_movie_id_by_douban_id(douban_id):
+    session = DBSession()
+    target_movie = session.query(Movie).filter(Movie.mid == douban_id).first()
+    movie_id_info = {}
+    if target_movie:
+        movie_id_info = {'id': target_movie.id}
+    session.close()
+    return movie_id_info
+
+
 def get_top_tags(args):
     page = 1
     limit = 15

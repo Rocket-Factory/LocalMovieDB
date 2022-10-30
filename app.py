@@ -154,10 +154,11 @@ def get_movie_recommendations_api(mid):
     return jsonify(recommendations_json)
 
 
-@app.route('/api/movie/<int:douban_id>/videos')
+@app.route('/api/movie/db/<int:douban_id>/videos')
 @jwt_required()
-def get_movie_videos(douban_id):
-    video_files_str = sql_util.get_movie_video_files_by_douban_id(str(douban_id))
+def get_db_movie_videos(douban_id):
+    video_files_str = sql_util.get_movie_video_files_by_douban_id(
+        str(douban_id))
     if video_files_str != '':
         url_prefix = URL_PREFIX
         secure_passwd = nginx_util.get_secure_passwd()
@@ -166,6 +167,13 @@ def get_movie_videos(douban_id):
         return jsonify(video_links)
     else:
         return jsonify(status='error', msg='Not found'), 404
+
+
+@app.route('/api/movie/db/<int:douban_id>/id')
+@jwt_required()
+def get_db_movie_id(douban_id):
+    id_info = sql_util.get_movie_id_by_douban_id(douban_id)
+    return jsonify(id_info)
 
 
 @app.route('/api/movies')
