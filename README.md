@@ -3,25 +3,31 @@
 
 
 ## 功能
-- 抓取本地电影豆瓣信息（设置定时运行）
+- 抓取本地电影豆瓣信息
 - Web页面展示电影列表和播放页面（调用PC、移动端视频APP）
 - 标题搜索、排序、Tag筛选
 
-![PC0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC0.png)
-![MB0](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/PC1.png)
-![MB1](https://raw.githubusercontent.com/Rocket-Factory/LocalMovieDB/legolas/preview/MB.png)
+![PC0](preview/PC0.png)
+![MB0](preview/PC1.png)
+![MB1](preview/MB.png)
 
 
 ## 使用
-1. 修改`docker-compose.yml`、`nginx/Dockerfile`
-2. `docker-compose build --no-cache && sudo docker-compose up -d`
-3. 创建cron任务，`curl http://username@password@127.0.0.1:xxxx/api/job`定时更新电影信息。
+1. `docker pull ghcr.io/rocket-factory/localmoviedb:latest`
+2. 修改路径、端口映射并运行`docker run -d --name moviedb -v /<自定义数据保存路径>/moviedbdata:/app/data -v /mnt/<影视路径1>:/mnt/media/1 -v /mt/<影视路径2>:/mnt/media/2 -p 5006:8080 --restart=always ghcr.io/rocket-factory/localmoviedb:latest`
+3. 访问web页面(http://xxx.xxx.xxx.xx:5006)进行初始化
 
 ## 注意
 1. 电影路径格式要求：默认为`豆瓣电影名（年份）`，路径内需存在视频文件（mkv/mp4/ts/flv）。
-2. 豆瓣API会去获取新的电影和剧集，如不存在可能会导致数据库收录和推送失败，详见`https://douban.8610000.xyz/`。
+2. 豆瓣API会去获取新的电影和剧集，如不存在可能会导致数据库收录和推送失败，详见`https://moviedb.8610000.xyz/`。
 
 ## 更新
+### 2023-01-14(maia)
+1. 优化后端逻辑
+2. 新增初始化页面
+3. 前端Bug修复和效果优化
+4. 自动构建并简化使用流程
+
 ### 2021-12-30
 1. 修复翻页加载bug
 2. 修复播放列表显示不全的bug
