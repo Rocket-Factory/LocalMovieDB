@@ -312,71 +312,74 @@ def update_or_insert_movie(info):
     session = DBSession()
     target_movie = session.query(Movie).filter_by(**{'title': info['title'], 'year': info['year']}) \
         .first()
+    
     if target_movie:
-        target_movie.uri = info['uri']
-        target_movie.update_date = info['update_date']
-        target_movie.video_files = info['video_files']
+        # 跳过文件和评分无变化的
+        if target_movie.video_files == info['video_files'] and  target_movie.douban_rating == info['douban_rating']:
+            return
+        # 删除原数据以便更新
+        session.delete(target_movie)
 
-    else:
-        basic_info = info.copy()
-        basic_info.pop('tags')
-        basic_info.pop('directors')
-        basic_info.pop('actors')
-        new_movie = Movie(**basic_info)
-        session.add(new_movie)
-        session.flush()
 
-        for tag in info['tags']:
-            if session.query(Tag).filter(Tag.text == tag).count() > 0:
-                tar_tag = session.query(Tag).filter(Tag.text == tag).first()
+    basic_info = info.copy()
+    basic_info.pop('tags')
+    basic_info.pop('directors')
+    basic_info.pop('actors')
+    new_movie = Movie(**basic_info)
+    session.add(new_movie)
+    session.flush()
+
+    for tag in info['tags']:
+        if session.query(Tag).filter(Tag.text == tag).count() > 0:
+            tar_tag = session.query(Tag).filter(Tag.text == tag).first()
+        else:
+            tar_tag = Tag(tag)
+            session.add(tar_tag)
+            session.flush()
+        new_movie_tag = MovieTag(new_movie.id, tar_tag.id)
+        session.add(new_movie_tag)
+
+    for director in info['directors']:
+        director_info = json.loads(director['info'])
+        if 'id' in director_info and session.query(Role).filter(Role.rid == director_info['id']).count() > 0:
+            tar_role = session.query(Role).filter(
+                Role.rid == director_info['id']).first()
+        elif session.query(Role).filter(Role.name == director['name']).count() > 0:
+            tar_role = session.query(Role).filter(
+                Role.name == director['name']).first()
+        else:
+            if 'id' in director['info']:
+                tar_role = Role(
+                    director_info['id'], director['name'], director['info'])
             else:
-                tar_tag = Tag(tag)
-                session.add(tar_tag)
-                session.flush()
-            new_movie_tag = MovieTag(new_movie.id, tar_tag.id)
-            session.add(new_movie_tag)
+                tar_role = Role(
+                    str(-datetime.timestamp(datetime.now())), director['name'], director['info'])
+                time.sleep(1)
+            session.add(tar_role)
+            session.flush()
+        new_movie_director = MovieDirector(new_movie.id, tar_role.id)
+        session.add(new_movie_director)
 
-        for director in info['directors']:
-            director_info = json.loads(director['info'])
-            if 'id' in director_info and session.query(Role).filter(Role.rid == director_info['id']).count() > 0:
-                tar_role = session.query(Role).filter(
-                    Role.rid == director_info['id']).first()
-            elif session.query(Role).filter(Role.name == director['name']).count() > 0:
-                tar_role = session.query(Role).filter(
-                    Role.name == director['name']).first()
+    for actor in info['actors']:
+        actor_info = json.loads(actor['info'])
+        if 'id' in actor_info and session.query(Role).filter(Role.rid == actor_info['id']).count() > 0:
+            tar_role = session.query(Role).filter(
+                Role.rid == actor_info['id']).first()
+        elif session.query(Role).filter(Role.name == actor['name']).count() > 0:
+            tar_role = session.query(Role).filter(
+                Role.name == actor['name']).first()
+        else:
+            if 'id' in actor['info']:
+                tar_role = Role(
+                    actor_info['id'], actor['name'], actor['info'])
             else:
-                if 'id' in director['info']:
-                    tar_role = Role(
-                        director_info['id'], director['name'], director['info'])
-                else:
-                    tar_role = Role(
-                        str(-datetime.timestamp(datetime.now())), director['name'], director['info'])
-                    time.sleep(1)
-                session.add(tar_role)
-                session.flush()
-            new_movie_director = MovieDirector(new_movie.id, tar_role.id)
-            session.add(new_movie_director)
-
-        for actor in info['actors']:
-            actor_info = json.loads(actor['info'])
-            if 'id' in actor_info and session.query(Role).filter(Role.rid == actor_info['id']).count() > 0:
-                tar_role = session.query(Role).filter(
-                    Role.rid == actor_info['id']).first()
-            elif session.query(Role).filter(Role.name == actor['name']).count() > 0:
-                tar_role = session.query(Role).filter(
-                    Role.name == actor['name']).first()
-            else:
-                if 'id' in actor['info']:
-                    tar_role = Role(
-                        actor_info['id'], actor['name'], actor['info'])
-                else:
-                    tar_role = Role(
-                        str(-datetime.timestamp(datetime.now())), actor['name'], actor['info'])
-                    time.sleep(1)
-                session.add(tar_role)
-                session.flush()
-            new_movie_director = MovieActor(new_movie.id, tar_role.id)
-            session.add(new_movie_director)
+                tar_role = Role(
+                    str(-datetime.timestamp(datetime.now())), actor['name'], actor['info'])
+                time.sleep(1)
+            session.add(tar_role)
+            session.flush()
+        new_movie_director = MovieActor(new_movie.id, tar_role.id)
+        session.add(new_movie_director)
 
     session.commit()
     session.close()
