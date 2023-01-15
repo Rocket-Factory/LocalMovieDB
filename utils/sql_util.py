@@ -319,8 +319,10 @@ def update_or_insert_movie(info):
             return
         # 删除原数据以便更新
         session.delete(target_movie)
+        session.commit()
+    session.close()
 
-
+    session = DBSession()
     basic_info = info.copy()
     basic_info.pop('tags')
     basic_info.pop('directors')
@@ -338,6 +340,7 @@ def update_or_insert_movie(info):
             session.flush()
         new_movie_tag = MovieTag(new_movie.id, tar_tag.id)
         session.add(new_movie_tag)
+        session.flush()
 
     for director in info['directors']:
         director_info = json.loads(director['info'])
