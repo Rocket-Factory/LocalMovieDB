@@ -315,7 +315,8 @@ def update_or_insert_movie(info):
     
     if target_movie:
         # 跳过文件和评分无变化的
-        if target_movie.video_files == info['video_files'] and  target_movie.douban_rating == info['douban_rating']:
+        if target_movie.video_files == info['video_files'] and  target_movie.douban_rating == str(info['douban_rating']):
+            session.close()
             return
         # 删除原数据以便更新
         session.delete(target_movie)
