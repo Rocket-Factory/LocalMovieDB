@@ -45,13 +45,9 @@ def get_movie_info(mid):
             fanart = ''
     recommendations = get_movie_recommendations(mid)
     tags = []
-    for tag in info_json['tags']:
-        tags.append(tag['name'])
+    for tag in info_json['f_tags']:
+        tags.append(tag)
     
-    if 'card_subtitle' in info_json:
-        for tag in info_json['card_subtitle'].replace(' / ',' ').split(' '):
-            if tag not in tags:
-                tags.append(tag)
     return {
         'mid':mid,
         'title': info_json['title'],
