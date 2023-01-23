@@ -274,7 +274,7 @@ def get_movie_id_by_douban_id(douban_id):
 
 def get_top_tags(args):
     page = 1
-    limit = 15
+    limit = 20
     if 'page' in args:
         page = int(args['page'])
         args.pop('page')
