@@ -21,7 +21,7 @@ def q_file_expired():
 
 
 def download_q_file():
-    with requests.get(DOUBAN_MOVIE_JSON_API + '/q.json', headers=HEADERS, stream=True,  timeout=100) as r:
+    with requests.get('https://gitlab.com/Taosky/partfork/-/raw/master/q.json', headers=HEADERS, stream=True,  timeout=100) as r:
         with open(Q_FILE_PATH, 'wb') as f:
             for chunk in r.iter_content(chunk_size=1024):
                 f.write(chunk)
